@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monoboard.ai/agent-governance/schemas/change_order.schema.json",
+  "title": "Change Order Agent Output",
+  "description": "Structured output produced by the Change Order Agent on every trigger. Focuses on extracting financial amounts and schedule impacts for escalation validation.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "agent_id",
+    "agent_version",
+    "constitution_version",
+    "change_order",
+    "financials",
+    "routing",
+    "resolution_path",
+    "resolution_path_attempts",
+    "sources_cited",
+    "writes_proposed",
+    "escalations_fired",
+    "outcome"
+  ],
+  "additionalProperties": false,
+
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "agent_id": {
+      "type": "string",
+      "const": "change_order"
+    },
+    "agent_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "constitution_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "change_order": {
+      "type": "object",
+      "required": [
+        "filename",
+        "job_number",
+        "co_number",
+        "type_code",
+        "description_slug",
+        "version",
+        "source_uri",
+        "received_at",
+        "payload_hash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "filename": { "type": "string" },
+        "filename_conforms": { "type": "boolean" },
+        "job_number": { "type": "string", "pattern": "^\\d{4}$" },
+        "co_number": { "type": "string", "pattern": "^CO-\\d{3,6}$" },
+        "type_code": { "type": "string", "const": "CO" },
+        "description_slug": { "type": "string" },
+        "version": { "type": "integer", "minimum": 1 },
+        "source_uri": { "type": "string", "format": "uri" },
+        "received_at": { "type": "string", "format": "date-time" },
+        "payload_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "financials": {
+      "type": "object",
+      "required": [
+        "amount",
+        "contract_value",
+        "schedule_impact_days",
+        "reason_code"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "type": "number", "description": "The exact dollar amount requested in the CO. Zero if no cost." },
+        "contract_value": { "type": "number", "description": "The current contract value against which the 5% threshold is checked." },
+        "schedule_impact_days": { "type": "integer", "description": "Number of days added to the schedule." },
+        "reason_code": {
+          "type": ["string", "null"],
+          "enum": ["client_request", "design_error", "unforeseen_condition", "allowance_reconciliation", "null"],
+          "description": "Categorization of why the CO is needed."
+        }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "required": [
+        "assigned_to_role",
+        "target_channel_uri",
+        "routing_basis"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "assigned_to_role": {
+          "type": ["string", "null"],
+          "enum": ["@PM", "@Exec", "@Super", "unroutable", "null"]
+        },
+        "target_channel_uri": { "type": ["string", "null"], "format": "uri" },
+        "target_scope": { "type": "string", "const": "teams_finance_channel" },
+        "routing_basis": { "type": "string" },
+        "escalation_triggered": { "type": "boolean" }
+      }
+    },
+    "resolution_path": {
+      "type": "string",
+      "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference"]
+    },
+    "resolution_path_attempts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["step", "outcome"],
+        "additionalProperties": false,
+        "properties": {
+          "step": { "type": "string", "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference"] },
+          "outcome": { "type": "string", "enum": ["success", "fail", "skipped"] },
+          "failure_reason": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "sources_cited": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "uri"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string", "enum": ["sp_file", "sp_list_item", "teams_message", "od_path"] },
+          "uri": { "type": "string", "format": "uri" },
+          "last_modified": { "type": ["string", "null"], "format": "date-time" },
+          "freshness_ok": { "type": ["boolean", "null"] }
+        }
+      }
+    },
+    "writes_proposed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_scope", "target_uri", "write_type"],
+        "additionalProperties": false,
+        "properties": {
+          "target_scope": { "type": "string" },
+          "target_uri": { "type": "string", "format": "uri" },
+          "write_type": { "type": "string", "enum": ["post", "reply", "list_add"] },
+          "content_summary": { "type": "string", "maxLength": 500 }
+        }
+      }
+    },
+    "escalations_fired": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger_id", "destination", "halts_write", "condition_matched"],
+        "additionalProperties": false,
+        "properties": {
+          "trigger_id": { "type": "string" },
+          "destination": { "type": "string" },
+          "halts_write": { "type": "boolean" },
+          "condition_matched": { "type": "string" },
+          "payload_summary": { "type": ["string", "null"], "maxLength": 500 }
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "routed",
+        "escalated_amount_threshold",
+        "escalated_schedule_threshold",
+        "halted_scope_violation",
+        "halted_triage",
+        "halted_validation"
+      ]
+    }
+  }
+}

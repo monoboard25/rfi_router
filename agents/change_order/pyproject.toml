@@ -1,0 +1,18 @@
+[project]
+name = "change-order"
+version = "0.1.0"
+description = "Change Order Azure Function"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "azure-functions",
+    "openai",
+    "pydantic",
+    "requests",
+    "pytest"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
