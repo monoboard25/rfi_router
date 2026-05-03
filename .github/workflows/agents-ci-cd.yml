@@ -1,0 +1,94 @@
+name: Agents CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'agents/**'
+      - '.github/workflows/agents-ci-cd.yml'
+  pull_request:
+    paths:
+      - 'agents/**'
+      - '.github/workflows/agents-ci-cd.yml'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    name: Test ${{ matrix.agent }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: [rfi_router, change_order, daily_report]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Run Tests
+        working-directory: agents/${{ matrix.agent }}
+        run: |
+          uv sync
+          uv run pytest tests
+
+  deploy:
+    name: Deploy ${{ matrix.agent }}
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - agent: rfi_router
+            app_name: monoboard-rfi-router
+          - agent: change_order
+            app_name: monoboard-change-order
+          - agent: daily_report
+            app_name: monoboard-daily-report
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Resolve Project Dependencies
+        working-directory: agents/${{ matrix.agent }}
+        run: uv export --format requirements-txt > requirements.txt
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Function App
+        uses: azure/functions-action@v1
+        with:
+          app-name: ${{ matrix.app_name }}
+          package: agents/${{ matrix.agent }}
