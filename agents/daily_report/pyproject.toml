@@ -1,0 +1,18 @@
+[project]
+name = "daily-report"
+version = "0.1.0"
+description = "Daily Report Azure Function"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "azure-functions",
+    "openai",
+    "pydantic",
+    "requests",
+    "pytest"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monoboard.ai/agent-governance/schemas/daily_report.schema.json",
+  "title": "Daily Report Agent Output",
+  "description": "Structured output for the Daily Report agent. Captures crew hours, field evidence, and narrative progress.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "agent_id",
+    "agent_version",
+    "constitution_version",
+    "report_metadata",
+    "crew_hours",
+    "field_evidence",
+    "narrative",
+    "resolution_path",
+    "writes_proposed",
+    "outcome"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "agent_id": { "type": "string", "const": "daily_report" },
+    "agent_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "constitution_version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "report_metadata": {
+      "type": "object",
+      "required": ["job_number", "report_date", "weather_summary"],
+      "properties": {
+        "job_number": { "type": "string", "pattern": "^\\d{4}$" },
+        "report_date": { "type": "string", "format": "date" },
+        "weather_summary": { "type": ["string", "null"] }
+      }
+    },
+    "crew_hours": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trade", "hours", "count"],
+        "properties": {
+          "trade": { "type": "string" },
+          "hours": { "type": "number" },
+          "count": { "type": "integer" }
+        }
+      }
+    },
+    "field_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["uri", "caption"],
+        "properties": {
+          "uri": { "type": "string", "format": "uri" },
+          "caption": { "type": "string" }
+        }
+      }
+    },
+    "narrative": {
+      "type": "object",
+      "required": ["summary", "roadblocks"],
+      "properties": {
+        "summary": { "type": "string", "maxLength": 2000 },
+        "roadblocks": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "resolution_path": {
+      "type": "string",
+      "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference"]
+    },
+    "resolution_path_attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "outcome"],
+        "properties": {
+          "step": { "type": "string" },
+          "outcome": { "type": "string" }
+        }
+      }
+    },
+    "sources_cited": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "uri"],
+        "properties": {
+          "type": { "type": "string" },
+          "uri": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "writes_proposed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_scope", "target_uri", "write_type"],
+        "properties": {
+          "target_scope": { "type": "string" },
+          "target_uri": { "type": "string", "format": "uri" },
+          "write_type": { "type": "string" },
+          "proposed_filename": { "type": ["string", "null"] },
+          "content_summary": { "type": "string" }
+        }
+      }
+    },
+    "escalations_fired": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger_id", "destination", "halts_write"],
+        "properties": {
+          "trigger_id": { "type": "string" },
+          "destination": { "type": "string" },
+          "halts_write": { "type": "boolean" }
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["completed_with_write", "halted_validation", "escalated"]
+    }
+  }
+}
