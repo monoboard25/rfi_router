@@ -1,0 +1,56 @@
+[
+  {
+    "scope_id": "teams_safety_compliance",
+    "uri_pattern": "^teams://(?:[a-zA-Z0-9\\-]+)/safety-compliance(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches the Safety & Compliance Teams channel"
+  },
+  {
+    "scope_id": "teams_estimating",
+    "uri_pattern": "^teams://(?:[a-zA-Z0-9\\-]+)/estimating(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches the Estimating Teams channel"
+  },
+  {
+    "scope_id": "teams_agent_governance",
+    "uri_pattern": "^teams://(?:[a-zA-Z0-9\\-]+)/agent-governance(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches the Agent Governance Teams channel"
+  },
+  {
+    "scope_id": "teams_project_channel",
+    "uri_pattern": "^teams://(?:[a-zA-Z0-9\\-]+)/project-\\d{4}(?:/.*)?$",
+    "priority": 20,
+    "description": "Matches any project-specific Teams channel"
+  },
+  {
+    "scope_id": "sp_intranet_agent_governance",
+    "uri_pattern": "^https://(?:[a-zA-Z0-9\\-]+)\\.sharepoint\\.com/sites/Intranet/AgentGovernance(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches the Agent Governance area of the Intranet"
+  },
+  {
+    "scope_id": "sp_intranet",
+    "uri_pattern": "^https://(?:[a-zA-Z0-9\\-]+)\\.sharepoint\\.com/sites/Intranet(?:/.*)?$",
+    "priority": 20,
+    "description": "Matches the general Company Intranet (excluding Agent Governance)"
+  },
+  {
+    "scope_id": "sp_finance",
+    "uri_pattern": "^https://(?:[a-zA-Z0-9\\-]+)\\.sharepoint\\.com/sites/Finance(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches the corporate Finance SharePoint site"
+  },
+  {
+    "scope_id": "sp_project_site",
+    "uri_pattern": "^https://(?:[a-zA-Z0-9\\-]+)\\.sharepoint\\.com/sites/project-\\d{4}(?:/.*)?$",
+    "priority": 20,
+    "description": "Matches any project-specific SharePoint site (e.g., /sites/project-2401)"
+  },
+  {
+    "scope_id": "od_field",
+    "uri_pattern": "^https://(?:[a-zA-Z0-9\\-]+)-my\\.sharepoint\\.com/personal/(?:.*)/Documents/Field(?:/.*)?$",
+    "priority": 10,
+    "description": "Matches OneDrive field capture folders"
+  }
+]

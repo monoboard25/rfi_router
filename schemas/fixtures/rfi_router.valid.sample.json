@@ -1,0 +1,108 @@
+{
+  "run_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "agent_id": "rfi_router",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "rfi": {
+    "filename": "2401-RFI-ElectricalLayout-v1.pdf",
+    "filename_conforms": true,
+    "job_number": "2401",
+    "rfi_number": "RFI-0042",
+    "type_code": "RFI",
+    "description_slug": "ElectricalLayout",
+    "version": 1,
+    "source_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-ElectricalLayout-v1.pdf",
+    "received_at": "2026-05-03T14:00:00Z",
+    "payload_hash": "sha256:a3f5c9d1e2b4f6a8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6",
+    "submitter": {
+      "name": "Carlos Rivera",
+      "company": "Rivera Electrical Contractors",
+      "email": "c.rivera@riveraelec.com"
+    },
+    "date_required_by": "2026-05-05"
+  },
+
+  "classification": {
+    "trade": "electrical",
+    "trade_basis": "description_slug segment 'ElectricalLayout' matched 'electrical' in trade keyword list via deterministic_tool lookup against TradeKeywords SP list",
+    "classification_method": "deterministic_tool",
+    "confidence_source": "tool_return",
+    "priority": "high",
+    "priority_basis": "date_required_by 2026-05-05 is within 48 hours of received_at 2026-05-03T14:00:00Z"
+  },
+
+  "routing": {
+    "assigned_to_role": "@Estimator",
+    "assigned_to_name": "Maria Santos",
+    "target_channel_uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-electrical%40thread.tacv2",
+    "target_scope": "teams_project_channel",
+    "routing_basis": "trade=electrical → @Estimator per Delegation Register row 12 (project 2401, role Estimator, name Maria Santos)",
+    "escalation_triggered": false,
+    "sla_deadline": "2026-05-05T14:00:00Z"
+  },
+
+  "tracking_row": {
+    "list_uri": "https://monoboard.sharepoint.com/sites/project-2401/Lists/RFITracker",
+    "row_key": "2401-RFI-0042",
+    "status": "open",
+    "job_number": "2401",
+    "rfi_number": "RFI-0042",
+    "trade": "electrical",
+    "priority": "high",
+    "assigned_to_role": "@Estimator",
+    "assigned_to_name": "Maria Santos",
+    "received_at": "2026-05-03T14:00:00Z",
+    "sla_deadline": "2026-05-05T14:00:00Z",
+    "date_required_by": "2026-05-05",
+    "source_file_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-ElectricalLayout-v1.pdf",
+    "run_id_ref": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "notes": null
+  },
+
+  "resolution_path": "deterministic_tool",
+
+  "resolution_path_attempts": [
+    { "step": "schema_parse", "outcome": "fail", "failure_reason": "description_slug 'ElectricalLayout' is not a bare trade code — regex match on segment alone is insufficient for classification" },
+    { "step": "deterministic_tool", "outcome": "success", "failure_reason": null },
+    { "step": "retrieval", "outcome": "skipped", "failure_reason": null },
+    { "step": "inference", "outcome": "skipped", "failure_reason": null }
+  ],
+
+  "sources_cited": [
+    {
+      "type": "sp_file",
+      "uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-ElectricalLayout-v1.pdf",
+      "last_modified": "2026-05-03T13:55:00Z",
+      "freshness_ok": true
+    },
+    {
+      "type": "sp_list_item",
+      "uri": "https://monoboard.sharepoint.com/sites/intranet/Lists/TradeKeywords/Items/7",
+      "last_modified": "2026-04-01T09:00:00Z",
+      "freshness_ok": true
+    },
+    {
+      "type": "sp_list_item",
+      "uri": "https://monoboard.sharepoint.com/sites/intranet/Lists/DelegationRegister/Items/12",
+      "last_modified": "2026-04-15T11:00:00Z",
+      "freshness_ok": true
+    }
+  ],
+
+  "writes_proposed": [
+    {
+      "target_scope": "teams_project_channel",
+      "target_uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-electrical%40thread.tacv2",
+      "write_type": "post",
+      "proposed_filename": null,
+      "content_summary": "RFI-0042 received for job 2401 (ElectricalLayout). Classified: electrical / high priority. Assigned to @Estimator (Maria Santos). SLA deadline: 2026-05-05T14:00:00Z. Source file linked. run_id: f47ac10b."
+    }
+  ],
+
+  "escalations_fired": [],
+
+  "outcome": "routed",
+
+  "uncertainty": null
+}

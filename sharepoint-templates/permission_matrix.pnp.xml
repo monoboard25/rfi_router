@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Permission Matrix — PnP Provisioning Template
+  Apply with: Apply-PnPProvisioningTemplate -Path permission_matrix.pnp.xml
+  Target site: Company Intranet → Agent Governance
+  Constitution reference: Pillar I — Bounded Scope
+  
+  IMPORTANT: This list is the ONLY place Permission Matrix is enforced at runtime.
+  Do not duplicate grants into agent prompts. Scope validator reads this list fresh
+  on every validation call (60-second in-memory cache max).
+-->
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2022/09/ProvisioningSchema">
+  <pnp:Preferences Generator="monoboard-agent-governance-v1.0" />
+  <pnp:Templates ID="MONOBOARD-GOVERNANCE-TEMPLATES">
+    <pnp:ProvisioningTemplate ID="PERMISSION-MATRIX-TEMPLATE" Version="1">
+
+      <pnp:Lists>
+        <pnp:ListInstance
+          Title="PermissionMatrix"
+          Description="Authoritative agent-scope access grants. Read by the scope validator on every agent write. Absence of a row = denial. Constitution ref: Pillar I."
+          TemplateType="100"
+          Url="Lists/PermissionMatrix"
+          EnableVersioning="true"
+          MaxVersionLimit="50"
+          EnableAttachments="false"
+          OnQuickLaunch="true">
+
+          <pnp:Fields>
+
+            <!-- agent_id: which agent holds this grant -->
+            <Field Type="Choice"
+                   DisplayName="agent_id"
+                   Name="agent_id"
+                   ID="{A1000001-0000-0000-0000-000000000001}"
+                   Required="TRUE"
+                   EnforceUniqueValues="FALSE">
+              <CHOICES>
+                <CHOICE>rfi_router</CHOICE>
+                <CHOICE>daily_report</CHOICE>
+                <CHOICE>change_order</CHOICE>
+                <CHOICE>safety_monitor</CHOICE>
+                <CHOICE>bid_assist</CHOICE>
+                <CHOICE>ceo_agent</CHOICE>
+              </CHOICES>
+            </Field>
+
+            <!-- scope_id: the logical scope being granted -->
+            <Field Type="Choice"
+                   DisplayName="scope_id"
+                   Name="scope_id"
+                   ID="{A1000002-0000-0000-0000-000000000002}"
+                   Required="TRUE"
+                   EnforceUniqueValues="FALSE">
+              <CHOICES>
+                <CHOICE>teams_project_channel</CHOICE>
+                <CHOICE>teams_safety_compliance</CHOICE>
+                <CHOICE>teams_estimating</CHOICE>
+                <CHOICE>teams_agent_governance</CHOICE>
+                <CHOICE>sp_project_site</CHOICE>
+                <CHOICE>sp_intranet</CHOICE>
+                <CHOICE>sp_intranet_agent_governance</CHOICE>
+                <CHOICE>sp_finance</CHOICE>
+                <CHOICE>od_field</CHOICE>
+              </CHOICES>
+            </Field>
+
+            <!-- access: the level of access granted -->
+            <Field Type="Choice"
+                   DisplayName="access"
+                   Name="access"
+                   ID="{A1000003-0000-0000-0000-000000000003}"
+                   Required="TRUE"
+                   EnforceUniqueValues="FALSE">
+              <CHOICES>
+                <CHOICE>R</CHOICE>
+                <CHOICE>W</CHOICE>
+                <CHOICE>R/W</CHOICE>
+              </CHOICES>
+            </Field>
+
+            <!-- conditional: true = grant has a condition that must be met at runtime -->
+            <Field Type="Boolean"
+                   DisplayName="conditional"
+                   Name="conditional"
+                   ID="{A1000004-0000-0000-0000-000000000004}"
+                   Required="TRUE">
+              <Default>0</Default>
+            </Field>
+
+            <!-- condition_notes: human-readable description of the condition -->
+            <Field Type="Note"
+                   DisplayName="condition_notes"
+                   Name="condition_notes"
+                   ID="{A1000005-0000-0000-0000-000000000005}"
+                   Required="FALSE"
+                   NumLines="3"
+                   RichText="FALSE" />
+
+            <!-- constitution_ref: pillar/footnote tracing this grant to its source -->
+            <Field Type="Text"
+                   DisplayName="constitution_ref"
+                   Name="constitution_ref"
+                   ID="{A1000006-0000-0000-0000-000000000006}"
+                   Required="FALSE"
+                   MaxLength="100" />
+
+            <!-- effective_date: when this grant was approved and took effect -->
+            <Field Type="DateTime"
+                   DisplayName="effective_date"
+                   Name="effective_date"
+                   ID="{A1000007-0000-0000-0000-000000000007}"
+                   Required="TRUE"
+                   Format="DateOnly" />
+
+            <!-- approved_by: Principal Owner(s) who signed off -->
+            <Field Type="Text"
+                   DisplayName="approved_by"
+                   Name="approved_by"
+                   ID="{A1000008-0000-0000-0000-000000000008}"
+                   Required="TRUE"
+                   MaxLength="100" />
+
+          </pnp:Fields>
+
+          <pnp:Views>
+            <View DefaultView="TRUE" Name="All Grants" BaseViewID="1" Type="HTML" Url="Lists/PermissionMatrix/AllItems.aspx">
+              <ViewFields>
+                <FieldRef Name="agent_id" />
+                <FieldRef Name="scope_id" />
+                <FieldRef Name="access" />
+                <FieldRef Name="conditional" />
+                <FieldRef Name="condition_notes" />
+                <FieldRef Name="constitution_ref" />
+                <FieldRef Name="effective_date" />
+                <FieldRef Name="approved_by" />
+              </ViewFields>
+              <Query>
+                <OrderBy>
+                  <FieldRef Name="agent_id" />
+                  <FieldRef Name="scope_id" />
+                </OrderBy>
+              </Query>
+            </View>
+            <View Name="By Agent" BaseViewID="2" Type="HTML" Url="Lists/PermissionMatrix/ByAgent.aspx">
+              <ViewFields>
+                <FieldRef Name="agent_id" />
+                <FieldRef Name="scope_id" />
+                <FieldRef Name="access" />
+                <FieldRef Name="conditional" />
+              </ViewFields>
+              <Query>
+                <GroupBy Collapse="TRUE">
+                  <FieldRef Name="agent_id" />
+                </GroupBy>
+              </Query>
+            </View>
+          </pnp:Views>
+
+          <!--
+            SEED DATA — 19 rows, one per agent-scope grant.
+            Source: Constitution Pillar I table + footnotes ¹ ² ³
+            Approved by: Abdiel B. Escoto, Luis W. Delgado (Principal Owners)
+          -->
+          <pnp:DataRows>
+
+            <!-- RFI Router -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="rfi_router" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_project_channel" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row RFI Router / Teams" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="rfi_router" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_project_site" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row RFI Router / SP Project" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Daily Report -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="daily_report" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_project_channel" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Daily Report / Teams" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="daily_report" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_project_site" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Daily Report / SP Project" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="daily_report" />
+              <pnp:DataValue FieldName="scope_id"        Value="od_field" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Daily Report / OneDrive" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Change Order -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="change_order" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_project_channel" />
+              <pnp:DataValue FieldName="access"          Value="W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Change Order / Teams" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="change_order" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_project_site" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Change Order / SP Project" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Change Order → SP Finance is CONDITIONAL (footnote ¹) -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="change_order" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_finance" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="1" />
+              <pnp:DataValue FieldName="condition_notes" Value="Write is gated by the escalation validator. SP Finance write is only permitted when CO amount is UNDER threshold (≤$25k AND ≤5% contract value) AND no over-contingency trigger fires. If either escalation fires, write is blocked; draft posted to Teams only." />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I footnote ¹; Escalation Matrix rows co_amount_threshold, co_over_contingency" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Safety Monitor -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="safety_monitor" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_project_channel" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Safety Monitor / Teams" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="safety_monitor" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_safety_compliance" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Safety Monitor / Teams (Safety &amp; Compliance channel)" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="safety_monitor" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_intranet" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Safety Monitor / SP Intranet" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="safety_monitor" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_project_site" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Safety Monitor / SP Project" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Bid Assist -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="bid_assist" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_project_channel" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Bid Assist / Teams" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="bid_assist" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_estimating" />
+              <pnp:DataValue FieldName="access"          Value="R/W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Bid Assist / Teams (Estimating channel)" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="bid_assist" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_intranet" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Bid Assist / SP Intranet" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Bid Assist → SP Project is CONDITIONAL (footnote ²) -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="bid_assist" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_project_site" />
+              <pnp:DataValue FieldName="access"          Value="W" />
+              <pnp:DataValue FieldName="conditional"     Value="1" />
+              <pnp:DataValue FieldName="condition_notes" Value="Write limited to NEW project sites Bid Assist creates. No writes to existing project documents. Scope validator must confirm target URI is a newly provisioned site (creation timestamp within this run's window)." />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I footnote ²" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="bid_assist" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_finance" />
+              <pnp:DataValue FieldName="access"          Value="R" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I table, row Bid Assist / SP Finance" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- CEO Agent (footnote ³ — governance scope only) -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="ceo_agent" />
+              <pnp:DataValue FieldName="scope_id"        Value="teams_agent_governance" />
+              <pnp:DataValue FieldName="access"          Value="W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I footnote ³; CEO Agent §Scope / Writes" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"        Value="ceo_agent" />
+              <pnp:DataValue FieldName="scope_id"        Value="sp_intranet_agent_governance" />
+              <pnp:DataValue FieldName="access"          Value="W" />
+              <pnp:DataValue FieldName="conditional"     Value="0" />
+              <pnp:DataValue FieldName="condition_notes" Value="" />
+              <pnp:DataValue FieldName="constitution_ref" Value="Pillar I footnote ³; CEO Agent §Scope / Writes" />
+              <pnp:DataValue FieldName="effective_date"  Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"     Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+          </pnp:DataRows>
+
+        </pnp:ListInstance>
+      </pnp:Lists>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>

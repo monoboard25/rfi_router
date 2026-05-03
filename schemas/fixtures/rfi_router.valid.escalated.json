@@ -1,0 +1,110 @@
+{
+  "run_id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+  "agent_id": "rfi_router",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "rfi": {
+    "filename": "2401-RFI-MaterialSpec-v2.pdf",
+    "filename_conforms": true,
+    "job_number": "2401",
+    "rfi_number": "RFI-0043",
+    "type_code": "RFI",
+    "description_slug": "MaterialSpec",
+    "version": 2,
+    "source_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-MaterialSpec-v2.pdf",
+    "received_at": "2026-05-03T15:00:00Z",
+    "payload_hash": "sha256:b4d6e8a0c2f4a6b8d0e2f4a6b8c0d2e4f6a8c0d2e4f6a8b0c2d4e6f8a0b2c4d6",
+    "submitter": null,
+    "date_required_by": null
+  },
+
+  "classification": {
+    "trade": "unclassifiable",
+    "trade_basis": "description_slug 'MaterialSpec' does not map to a trade in the keyword list; no trade metadata on SP file; retrieval returned ambiguous results; inference also returned null — insufficient signal in document",
+    "classification_method": "unclassifiable",
+    "confidence_source": "none",
+    "priority": null,
+    "priority_basis": null
+  },
+
+  "routing": {
+    "assigned_to_role": "unroutable",
+    "assigned_to_name": null,
+    "target_channel_uri": null,
+    "target_scope": "teams_project_channel",
+    "routing_basis": "trade=unclassifiable → escalation to @PM per Escalation Matrix row: rfi_unclassifiable_after_inference",
+    "escalation_triggered": true,
+    "sla_deadline": null
+  },
+
+  "tracking_row": {
+    "list_uri": "https://monoboard.sharepoint.com/sites/project-2401/Lists/RFITracker",
+    "row_key": "2401-RFI-0043",
+    "status": "escalated",
+    "job_number": "2401",
+    "rfi_number": "RFI-0043",
+    "trade": "unclassifiable",
+    "priority": null,
+    "assigned_to_role": "unroutable",
+    "assigned_to_name": null,
+    "received_at": "2026-05-03T15:00:00Z",
+    "sla_deadline": null,
+    "date_required_by": null,
+    "source_file_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-MaterialSpec-v2.pdf",
+    "run_id_ref": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "notes": "Escalated: unclassifiable after all resolution steps. @PM review required."
+  },
+
+  "resolution_path": "inference",
+
+  "resolution_path_attempts": [
+    { "step": "schema_parse", "outcome": "fail", "failure_reason": "description_slug 'MaterialSpec' is not a recognized trade code" },
+    { "step": "deterministic_tool", "outcome": "fail", "failure_reason": "TradeKeywords SP list returned 0 matches for 'MaterialSpec'" },
+    { "step": "retrieval", "outcome": "fail", "failure_reason": "RAG over project-2401 site returned ambiguous: electrical and structural both partially match" },
+    { "step": "inference", "outcome": "fail", "failure_reason": "Model returned null trade — insufficient signal in document body to classify" }
+  ],
+
+  "sources_cited": [
+    {
+      "type": "sp_file",
+      "uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/RFIs/2401-RFI-MaterialSpec-v2.pdf",
+      "last_modified": "2026-05-03T14:45:00Z",
+      "freshness_ok": true
+    },
+    {
+      "type": "sp_list_item",
+      "uri": "https://monoboard.sharepoint.com/sites/intranet/Lists/TradeKeywords/Items/0",
+      "last_modified": "2026-04-01T09:00:00Z",
+      "freshness_ok": true
+    }
+  ],
+
+  "writes_proposed": [
+    {
+      "target_scope": "teams_project_channel",
+      "target_uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-general%40thread.tacv2",
+      "write_type": "post",
+      "proposed_filename": null,
+      "content_summary": "ESCALATION — RFI-0043 (MaterialSpec) cannot be classified. All 4 resolution steps failed. @PM review required. Source file linked. run_id: b2c3d4."
+    }
+  ],
+
+  "escalations_fired": [
+    {
+      "trigger_id": "rfi_unclassifiable_after_inference",
+      "destination": "Teams → Project Channel → @PM",
+      "halts_write": true,
+      "condition_matched": "trade=unclassifiable after schema_parse + deterministic_tool + retrieval + inference",
+      "payload_summary": "filename: 2401-RFI-MaterialSpec-v2.pdf; received_at: 2026-05-03T15:00:00Z; all 4 resolution steps returned no trade"
+    }
+  ],
+
+  "outcome": "escalated_no_trade",
+
+  "uncertainty": {
+    "type": "insufficient_data",
+    "field": "classification.trade",
+    "detail": "insufficient_data: 'MaterialSpec' did not resolve to any trade via schema_parse, deterministic_tool, retrieval, or inference. @PM must manually classify and re-trigger."
+  }
+}

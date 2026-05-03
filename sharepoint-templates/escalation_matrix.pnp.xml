@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Escalation Matrix — PnP Provisioning Template
+  Apply with: Apply-PnPProvisioningTemplate -Path escalation_matrix.pnp.xml
+  Target site: Company Intranet → Agent Governance
+  Constitution reference: Escalation Matrix
+  
+  IMPORTANT: This list is the authoritative escalation triggers.
+  Read by the escalation validator on every agent write.
+-->
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2022/09/ProvisioningSchema">
+  <pnp:Preferences Generator="monoboard-agent-governance-v1.0" />
+  <pnp:Templates ID="MONOBOARD-GOVERNANCE-TEMPLATES">
+    <pnp:ProvisioningTemplate ID="ESCALATION-MATRIX-TEMPLATE" Version="1">
+
+      <pnp:Lists>
+        <pnp:ListInstance
+          Title="EscalationMatrix"
+          Description="Authoritative escalation triggers. Read by the escalation validator on every agent write. Constitution ref: Escalation Matrix."
+          TemplateType="100"
+          Url="Lists/EscalationMatrix"
+          EnableVersioning="true"
+          MaxVersionLimit="50"
+          EnableAttachments="false"
+          OnQuickLaunch="true">
+
+          <pnp:Fields>
+
+            <!-- agent_id: which agent holds this grant -->
+            <Field Type="Choice"
+                   DisplayName="agent_id"
+                   Name="agent_id"
+                   ID="{B1000001-0000-0000-0000-000000000001}"
+                   Required="TRUE"
+                   EnforceUniqueValues="FALSE">
+              <CHOICES>
+                <CHOICE>rfi_router</CHOICE>
+                <CHOICE>daily_report</CHOICE>
+                <CHOICE>change_order</CHOICE>
+                <CHOICE>safety_monitor</CHOICE>
+                <CHOICE>bid_assist</CHOICE>
+                <CHOICE>ceo_agent</CHOICE>
+                <CHOICE>all</CHOICE>
+              </CHOICES>
+            </Field>
+
+            <!-- trigger_id: unique identifier for the escalation trigger -->
+            <Field Type="Text"
+                   DisplayName="trigger_id"
+                   Name="trigger_id"
+                   ID="{B1000002-0000-0000-0000-000000000002}"
+                   Required="TRUE"
+                   MaxLength="255" />
+
+            <!-- condition_expression: constrained DSL evaluated by Azure Function -->
+            <Field Type="Note"
+                   DisplayName="condition_expression"
+                   Name="condition_expression"
+                   ID="{B1000003-0000-0000-0000-000000000003}"
+                   Required="TRUE"
+                   NumLines="3"
+                   RichText="FALSE" />
+
+            <!-- destination: where the escalation is routed -->
+            <Field Type="Text"
+                   DisplayName="destination"
+                   Name="destination"
+                   ID="{B1000004-0000-0000-0000-000000000004}"
+                   Required="TRUE"
+                   MaxLength="255" />
+
+            <!-- halts_write: true = write is blocked pending human review -->
+            <Field Type="Boolean"
+                   DisplayName="halts_write"
+                   Name="halts_write"
+                   ID="{B1000005-0000-0000-0000-000000000005}"
+                   Required="TRUE">
+              <Default>1</Default>
+            </Field>
+
+            <!-- agent_action: action the agent takes while pending review -->
+            <Field Type="Text"
+                   DisplayName="agent_action"
+                   Name="agent_action"
+                   ID="{B1000006-0000-0000-0000-000000000006}"
+                   Required="FALSE"
+                   MaxLength="255" />
+
+            <!-- constitution_ref: reference to Constitution section -->
+            <Field Type="Text"
+                   DisplayName="constitution_ref"
+                   Name="constitution_ref"
+                   ID="{B1000007-0000-0000-0000-000000000007}"
+                   Required="FALSE"
+                   MaxLength="100" />
+
+            <!-- effective_date: when this trigger was approved and took effect -->
+            <Field Type="DateTime"
+                   DisplayName="effective_date"
+                   Name="effective_date"
+                   ID="{B1000008-0000-0000-0000-000000000008}"
+                   Required="TRUE"
+                   Format="DateOnly" />
+
+            <!-- approved_by: Principal Owner(s) who signed off -->
+            <Field Type="Text"
+                   DisplayName="approved_by"
+                   Name="approved_by"
+                   ID="{B1000009-0000-0000-0000-000000000009}"
+                   Required="TRUE"
+                   MaxLength="100" />
+
+          </pnp:Fields>
+
+          <pnp:Views>
+            <View DefaultView="TRUE" Name="All Triggers" BaseViewID="1" Type="HTML" Url="Lists/EscalationMatrix/AllItems.aspx">
+              <ViewFields>
+                <FieldRef Name="agent_id" />
+                <FieldRef Name="trigger_id" />
+                <FieldRef Name="condition_expression" />
+                <FieldRef Name="destination" />
+                <FieldRef Name="halts_write" />
+                <FieldRef Name="agent_action" />
+                <FieldRef Name="effective_date" />
+                <FieldRef Name="approved_by" />
+              </ViewFields>
+              <Query>
+                <OrderBy>
+                  <FieldRef Name="agent_id" />
+                  <FieldRef Name="trigger_id" />
+                </OrderBy>
+              </Query>
+            </View>
+            <View Name="By Agent" BaseViewID="2" Type="HTML" Url="Lists/EscalationMatrix/ByAgent.aspx">
+              <ViewFields>
+                <FieldRef Name="agent_id" />
+                <FieldRef Name="trigger_id" />
+                <FieldRef Name="destination" />
+                <FieldRef Name="halts_write" />
+              </ViewFields>
+              <Query>
+                <GroupBy Collapse="TRUE">
+                  <FieldRef Name="agent_id" />
+                </GroupBy>
+              </Query>
+            </View>
+          </pnp:Views>
+
+          <!--
+            SEED DATA — 20 rows (17 specific triggers + 3 general rules).
+            Source: Constitution Escalation Matrix
+            Approved by: Abdiel B. Escoto, Luis W. Delgado (Principal Owners)
+          -->
+          <pnp:DataRows>
+
+            <!-- RFI Router -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="rfi_router" />
+              <pnp:DataValue FieldName="trigger_id"           Value="rfi_unclassifiable_trade" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.trade == null OR output.trade == 'unknown'" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @PM" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Hold routing; file is not moved" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row RFI Router / No classifiable trade" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="rfi_router" />
+              <pnp:DataValue FieldName="trigger_id"           Value="rfi_no_response_48h" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.status == 'open' AND output.days_open &gt;= 2" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @PM + @Super" />
+              <pnp:DataValue FieldName="halts_write"          Value="0" />
+              <pnp:DataValue FieldName="agent_action"         Value="Continue to track; do not re-route" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row RFI Router / No response 48 hours" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Daily Report -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="daily_report" />
+              <pnp:DataValue FieldName="trigger_id"           Value="daily_missing_photos" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.logged_crew_hours &gt; 0 AND output.photo_count == 0" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @Super" />
+              <pnp:DataValue FieldName="halts_write"          Value="0" />
+              <pnp:DataValue FieldName="agent_action"         Value="Generate report with missing_photos flag" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Daily Report / Field photos missing" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="daily_report" />
+              <pnp:DataValue FieldName="trigger_id"           Value="daily_safety_keywords" />
+              <pnp:DataValue FieldName="condition_expression" Value="contains_any(output.notes, SAFETY_KEYWORDS)" />
+              <pnp:DataValue FieldName="destination"          Value="Handoff to Safety Monitor via Safety &amp; Compliance" />
+              <pnp:DataValue FieldName="halts_write"          Value="0" />
+              <pnp:DataValue FieldName="agent_action"         Value="Complete daily; do not add safety interpretation" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Daily Report / SAFETY_KEYWORDS" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Change Order -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="change_order" />
+              <pnp:DataValue FieldName="trigger_id"           Value="co_amount_threshold" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.amount &gt; 25000 OR output.amount &gt; (output.contract_value * 0.05)" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @PM + @Exec" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Draft budget projection; do not write to SP Finance" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Change Order / CO amount &gt; $25k" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="change_order" />
+              <pnp:DataValue FieldName="trigger_id"           Value="co_new_scope" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.is_new_scope == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @PM" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Flag new_scope; do not write" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Change Order / New scope" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="change_order" />
+              <pnp:DataValue FieldName="trigger_id"           Value="co_over_contingency" />
+              <pnp:DataValue FieldName="condition_expression" Value="(output.current_spend + output.amount) &gt; output.budget_contingency" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Project Channel → @PM + @Exec + @Owner rep" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Draft only; write blocked" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Change Order / Over contingency" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Safety Monitor -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="safety_monitor" />
+              <pnp:DataValue FieldName="trigger_id"           Value="safety_critical_incident" />
+              <pnp:DataValue FieldName="condition_expression" Value="contains_any(output.incident_text, ['fatality', 'fall', 'struck-by', 'electrocution', 'caught-in', 'hospitalization'])" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Safety &amp; Compliance → @SafetyOfficer + @HR" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Immediate alert; no auto-file, no auto-close" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Safety Monitor / Keyword match" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="safety_monitor" />
+              <pnp:DataValue FieldName="trigger_id"           Value="safety_osha_recordable" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.is_potential_osha_recordable == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Safety &amp; Compliance → @SafetyOfficer" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Draft incident record; do not file as OSHA form" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Safety Monitor / OSHA recordable" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="safety_monitor" />
+              <pnp:DataValue FieldName="trigger_id"           Value="safety_repeat_finding" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.is_repeat_finding_30d == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Safety &amp; Compliance → @SafetyOfficer + @PM" />
+              <pnp:DataValue FieldName="halts_write"          Value="0" />
+              <pnp:DataValue FieldName="agent_action"         Value="Include in scorecard with repeat flag" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Safety Monitor / Repeat finding" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- Bid Assist -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="bid_assist" />
+              <pnp:DataValue FieldName="trigger_id"           Value="bid_outbound_comm" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.is_outbound_comm == true" />
+              <pnp:DataValue FieldName="destination"          Value="— (prohibited)" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Never sends; draft-only always" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Bid Assist / Outbound communication" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="bid_assist" />
+              <pnp:DataValue FieldName="trigger_id"           Value="bid_firm_commitment" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.contains_pricing_commitment == true OR output.contains_schedule_commitment == true OR output.contains_bond_amount == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Estimating → @Estimator" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Draft in sandbox; do not write to project site" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Bid Assist / Pricing commitment" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="bid_assist" />
+              <pnp:DataValue FieldName="trigger_id"           Value="bid_deadline_approaching" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.hours_to_deadline &lt;= 48 AND output.is_complete == false" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Estimating → @Estimator" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Surface gap list; do not submit anything" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row Bid Assist / Deadline within 48h" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- CEO Agent -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="ceo_agent" />
+              <pnp:DataValue FieldName="trigger_id"           Value="ceo_scope_violation_alert" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.event_type == 'scope_violation'" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Company HQ → Agent Governance → @AgentGovOwner + @Security" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Immediate alert; do not investigate operational content" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row CEO Agent / Scope-violation record" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="ceo_agent" />
+              <pnp:DataValue FieldName="trigger_id"           Value="ceo_safety_trigger_change" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.recommendation_type == 'rule_adjustment' AND output.target_agent == 'safety_monitor'" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Safety &amp; Compliance → @SafetyOfficer + Agent Governance committee" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Hold proposal pending safety review" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row CEO Agent / Safety Monitor trigger" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="ceo_agent" />
+              <pnp:DataValue FieldName="trigger_id"           Value="ceo_insufficient_data" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.days_of_logs_available &lt; 30 OR output.has_log_gap == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Company HQ → Agent Governance → @AgentGovOwner" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Emit insufficient_data report; no proposal issued" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row CEO Agent / Insufficient data" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="ceo_agent" />
+              <pnp:DataValue FieldName="trigger_id"           Value="ceo_agent_disagreement" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.event_type == 'agent_disagreement'" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Company HQ → Agent Governance → @AgentGovOwner" />
+              <pnp:DataValue FieldName="halts_write"          Value="0" />
+              <pnp:DataValue FieldName="agent_action"         Value="Flag pattern; propose reconciliation rule as normal recommendation" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix table, row CEO Agent / Disagreement between agents" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <!-- General Escalation Rules (apply to all agents) -->
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="all" />
+              <pnp:DataValue FieldName="trigger_id"           Value="general_stale_data" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.source_artifact_age_days &gt; output.freshness_threshold_days" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Agent Review Queue" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Routes to review" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix General Rules / Stale data" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="all" />
+              <pnp:DataValue FieldName="trigger_id"           Value="general_conflicting_sources" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.has_conflicting_sources == true" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Agent Review Queue" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Routes to review with both citations" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix General Rules / Conflicting sources" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+            <pnp:DataRow>
+              <pnp:DataValue FieldName="agent_id"             Value="all" />
+              <pnp:DataValue FieldName="trigger_id"           Value="general_tool_failure" />
+              <pnp:DataValue FieldName="condition_expression" Value="output.tool_failure_count &gt; 1" />
+              <pnp:DataValue FieldName="destination"          Value="Teams → Agent Review Queue" />
+              <pnp:DataValue FieldName="halts_write"          Value="1" />
+              <pnp:DataValue FieldName="agent_action"         Value="Routes to review; no inference substitution" />
+              <pnp:DataValue FieldName="constitution_ref"     Value="Escalation Matrix General Rules / Tool failure" />
+              <pnp:DataValue FieldName="effective_date"       Value="2026-05-03" />
+              <pnp:DataValue FieldName="approved_by"          Value="Abdiel B. Escoto; Luis W. Delgado" />
+            </pnp:DataRow>
+
+          </pnp:DataRows>
+
+        </pnp:ListInstance>
+      </pnp:Lists>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>

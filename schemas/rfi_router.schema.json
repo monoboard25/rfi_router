@@ -1,0 +1,532 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monoboard.ai/agent-governance/schemas/rfi_router.schema.json",
+  "title": "RFI Router Output",
+  "description": "Structured output produced by the RFI Router agent on every trigger. This document is validated by the validator chain (schema → scope → naming → escalation) before any write is performed. Constitution reference: Pillar IV, §Agent Loop.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "agent_id",
+    "agent_version",
+    "constitution_version",
+    "rfi",
+    "classification",
+    "routing",
+    "tracking_row",
+    "resolution_path",
+    "resolution_path_attempts",
+    "sources_cited",
+    "writes_proposed",
+    "escalations_fired",
+    "outcome"
+  ],
+  "additionalProperties": false,
+
+  "properties": {
+
+    "run_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 generated at trigger time. Threaded through the entire run and stamped on all Teams posts and SharePoint writes so any artifact is traceable back to its run."
+    },
+
+    "agent_id": {
+      "type": "string",
+      "const": "rfi_router",
+      "description": "Fixed identifier for this agent. Must always be 'rfi_router'."
+    },
+
+    "agent_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the RFI Router agent that produced this output. E.g. '1.0.0'."
+    },
+
+    "constitution_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of the Agent Constitution this agent's prompt is pinned to. E.g. '1.2'."
+    },
+
+    "rfi": {
+      "type": "object",
+      "description": "Source RFI metadata, parsed deterministically from the triggering file. No inference is used here.",
+      "required": [
+        "filename",
+        "job_number",
+        "rfi_number",
+        "type_code",
+        "description_slug",
+        "version",
+        "source_uri",
+        "received_at",
+        "payload_hash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+
+        "filename": {
+          "type": "string",
+          "description": "Original filename as received. Must match one of the Constitution naming schema patterns to proceed without triage routing.",
+          "examples": ["2401-RFI-ElectricalLayout-v1.pdf"]
+        },
+
+        "filename_conforms": {
+          "type": "boolean",
+          "description": "True if the filename passed the naming regex for project files. False routes the file to the triage channel before classification proceeds."
+        },
+
+        "job_number": {
+          "type": "string",
+          "pattern": "^\\d{4}$",
+          "description": "4-digit job number parsed from segment 0 of the filename. E.g. '2401'."
+        },
+
+        "rfi_number": {
+          "type": "string",
+          "description": "Sequential RFI identifier parsed or assigned. E.g. 'RFI-0042'. Used as the tracking row key.",
+          "pattern": "^RFI-\\d{3,6}$"
+        },
+
+        "type_code": {
+          "type": "string",
+          "const": "RFI",
+          "description": "Must be 'RFI'. Parsed from segment 1 of the filename. If it is not 'RFI', this schema does not apply and the file is misrouted."
+        },
+
+        "description_slug": {
+          "type": "string",
+          "description": "Human-readable slug from segment 2 of the filename. Not used for routing logic — for display only. E.g. 'ElectricalLayout'."
+        },
+
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Version number parsed from the trailing v# segment. Used for version resolution: highest v# wins; older versions archive to /zArchive."
+        },
+
+        "source_uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "Full SharePoint URI of the triggering file. Must be under a /sites/project-*/ path to be within the RFI Router's read scope."
+        },
+
+        "received_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the trigger fired (file event timestamp, not processing timestamp)."
+        },
+
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 hash of the trigger payload for dedup detection and idempotency. Format: 'sha256:{hex}'."
+        },
+
+        "submitter": {
+          "type": ["object", "null"],
+          "description": "Party who submitted the RFI, if deterministically extractable from file metadata or a linked list item. Null if not available.",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "company": { "type": ["string", "null"] },
+            "email": { "type": ["string", "null"], "format": "email" }
+          }
+        },
+
+        "date_required_by": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date the submitter requires a response by, if present in the RFI document metadata or extracted via a deterministic tool call. Not inferred."
+        }
+      }
+    },
+
+    "classification": {
+      "type": "object",
+      "description": "Trade and priority classification of the RFI. Schema parse is attempted first; inference is used only as a last resort per Pillar VI.",
+      "required": [
+        "trade",
+        "classification_method",
+        "confidence_source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+
+        "trade": {
+          "type": ["string", "null"],
+          "enum": [
+            "electrical",
+            "mechanical",
+            "plumbing",
+            "structural",
+            "civil",
+            "architectural",
+            "low_voltage",
+            "fire_protection",
+            "general_conditions",
+            "unclassifiable",
+            null
+          ],
+          "description": "Trade category resolved for routing. 'unclassifiable' when classification exhausted all resolution steps and failed. Null only when the run is halted before classification."
+        },
+
+        "trade_basis": {
+          "type": ["string", "null"],
+          "description": "The specific evidence used to determine trade. E.g. 'description_slug contains Electrical', 'SP list field TradeCode = E', 'inference from document text'. Required when trade is not null."
+        },
+
+        "classification_method": {
+          "type": "string",
+          "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference", "unclassifiable"],
+          "description": "Which resolution step produced the trade classification. Mirrors resolution_path for this specific sub-task. 'unclassifiable' means all four steps failed."
+        },
+
+        "confidence_source": {
+          "type": "string",
+          "enum": ["parse", "tool_return", "retrieval_match", "model_logprob", "none"],
+          "description": "Where the confidence signal originated. Agents do not self-grade (Pillar IV); model_logprob is only logged when the model's tool itself returns it, not when the agent estimates it."
+        },
+
+        "priority": {
+          "type": ["string", "null"],
+          "enum": ["critical", "high", "medium", "low", null],
+          "description": "RFI response urgency. Null if not determinable. 'critical' escalates regardless of 48-hour SLA."
+        },
+
+        "priority_basis": {
+          "type": ["string", "null"],
+          "description": "Evidence for priority assignment. E.g. 'date_required_by is within 24 hours', 'submitter marked URGENT in subject'. Required when priority is not null."
+        }
+      }
+    },
+
+    "routing": {
+      "type": "object",
+      "description": "Who the RFI is assigned to and where it is written. All target_scope values must be within the RFI Router's Permission Matrix grants.",
+      "required": [
+        "assigned_to_role",
+        "target_channel_uri",
+        "routing_basis"
+      ],
+      "additionalProperties": false,
+      "properties": {
+
+        "assigned_to_role": {
+          "type": ["string", "null"],
+          "enum": [
+            "@PM",
+            "@Super",
+            "@Estimator",
+            "@SafetyOfficer",
+            "@AgentGovOwner",
+            "unroutable",
+            null
+          ],
+          "description": "The delegated role the RFI is routed to. 'unroutable' triggers escalation to @PM. Null only if the run is halted before routing."
+        },
+
+        "assigned_to_name": {
+          "type": ["string", "null"],
+          "description": "Resolved name from the Delegation Register for assigned_to_role on this project. Null if not found in the register (escalation fires)."
+        },
+
+        "target_channel_uri": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "Teams channel permalink where the routing notification post is written. Must be within the RFI Router's Teams R/W scope (project channel). Null if escalation halts write."
+        },
+
+        "target_scope": {
+          "type": "string",
+          "const": "teams_project_channel",
+          "description": "Scope identifier used by the scope validator. RFI Router only ever writes to teams_project_channel."
+        },
+
+        "routing_basis": {
+          "type": "string",
+          "description": "The evidence used to select assigned_to_role. E.g. 'trade=electrical → @Estimator per Delegation Register row 7', 'no trade → escalated to @PM'."
+        },
+
+        "escalation_triggered": {
+          "type": "boolean",
+          "description": "True when no classifiable trade was found after parse + inference, causing routing to @PM per the Escalation Matrix."
+        },
+
+        "sla_deadline": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Computed 48-hour SLA deadline from received_at. The agent tracks this to fire the 48-hour overdue escalation. Null if routing was blocked."
+        }
+      }
+    },
+
+    "tracking_row": {
+      "type": "object",
+      "description": "The row written to the RFI tracking SharePoint list. All fields here map 1:1 to SharePoint list columns on the project site.",
+      "required": [
+        "list_uri",
+        "row_key",
+        "status",
+        "job_number",
+        "rfi_number",
+        "trade",
+        "assigned_to_role",
+        "received_at",
+        "sla_deadline",
+        "source_file_uri"
+      ],
+      "additionalProperties": false,
+      "properties": {
+
+        "list_uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI of the SharePoint list where the tracking row is written. Must be on the project site matching job_number (scope: sp_project_site — read only for RFI Router; rows added via Teams trigger, not direct SP write)."
+        },
+
+        "row_key": {
+          "type": "string",
+          "description": "Unique key for this tracking row. Format: '{job_number}-{rfi_number}'. E.g. '2401-RFI-0042'.",
+          "pattern": "^\\d{4}-RFI-\\d{3,6}$"
+        },
+
+        "status": {
+          "type": "string",
+          "enum": ["open", "pending_response", "escalated", "closed"],
+          "description": "Initial status is always 'open' when the row is first created. 'escalated' when an escalation trigger fired."
+        },
+
+        "job_number": { "type": "string", "pattern": "^\\d{4}$" },
+        "rfi_number": { "type": "string", "pattern": "^RFI-\\d{3,6}$" },
+        "trade": {
+          "type": ["string", "null"],
+          "enum": ["electrical","mechanical","plumbing","structural","civil","architectural","low_voltage","fire_protection","general_conditions","unclassifiable", null]
+        },
+        "priority": {
+          "type": ["string", "null"],
+          "enum": ["critical", "high", "medium", "low", null]
+        },
+        "assigned_to_role": {
+          "type": ["string", "null"],
+          "enum": ["@PM","@Super","@Estimator","@SafetyOfficer","@AgentGovOwner","unroutable", null]
+        },
+        "assigned_to_name": { "type": ["string", "null"] },
+
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+
+        "sla_deadline": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+
+        "date_required_by": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+
+        "source_file_uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI of the triggering RFI file. Cross-references rfi.source_uri."
+        },
+
+        "run_id_ref": {
+          "type": "string",
+          "format": "uuid",
+          "description": "run_id stamped on this row so the row is traceable back to the agent run that created it."
+        },
+
+        "notes": {
+          "type": ["string", "null"],
+          "maxLength": 500,
+          "description": "Free-text notes field. Populated only with deterministic data (e.g., escalation reason). Agent does not use inference to populate this field."
+        }
+      }
+    },
+
+    "resolution_path": {
+      "type": "string",
+      "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference"],
+      "description": "The resolution step that produced the final answer for the primary task (trade classification + routing decision). Per Pillar VI, this must be the earliest step that succeeded. An agent that always lands on 'inference' is a signal that the schema or tool layer needs improvement."
+    },
+
+    "resolution_path_attempts": {
+      "type": "array",
+      "description": "Full sequence of resolution steps attempted, in order. Each step is recorded regardless of outcome. Mirrors the observability log field of the same name.",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["step", "outcome"],
+        "additionalProperties": false,
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": ["schema_parse", "deterministic_tool", "retrieval", "inference"]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": ["success", "fail", "skipped"]
+          },
+          "failure_reason": {
+            "type": ["string", "null"],
+            "description": "Why this step failed, if outcome is 'fail'. E.g. 'filename did not match naming regex', 'SP list query returned no rows for trade code'."
+          }
+        }
+      }
+    },
+
+    "sources_cited": {
+      "type": "array",
+      "description": "Every M365 source read during this run. URIs only — no content. Per Pillar III, every factual claim in routing and classification must be traceable to an entry here.",
+      "items": {
+        "type": "object",
+        "required": ["type", "uri"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["sp_file", "sp_list_item", "teams_message", "od_path"],
+            "description": "Source type per the observability log schema."
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "last_modified": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Last-modified timestamp of the source. Used for freshness checks — sources older than the configured threshold (default 7 days) trigger a stale-data escalation."
+          },
+          "freshness_ok": {
+            "type": ["boolean", "null"],
+            "description": "True if last_modified is within the freshness threshold. False triggers a stale-data escalation per the Escalation Matrix."
+          }
+        }
+      }
+    },
+
+    "writes_proposed": {
+      "type": "array",
+      "description": "Every write the agent proposes to perform. This array is passed to the validator chain's scope and naming validators before any write executes. The agent does not write if validator returns pass=false.",
+      "items": {
+        "type": "object",
+        "required": ["target_scope", "target_uri", "write_type"],
+        "additionalProperties": false,
+        "properties": {
+          "target_scope": {
+            "type": "string",
+            "enum": ["teams_project_channel"],
+            "description": "RFI Router is only permitted to write to teams_project_channel. Any other scope here will fail the scope validator."
+          },
+          "target_uri": {
+            "type": "string",
+            "format": "uri",
+            "description": "Full URI of the Teams channel or message thread being written to."
+          },
+          "write_type": {
+            "type": "string",
+            "enum": ["post", "reply"],
+            "description": "RFI Router posts routing notifications and SLA alerts. It never creates, updates, or deletes files."
+          },
+          "proposed_filename": {
+            "type": ["string", "null"],
+            "description": "Only populated if the write involves a new file. RFI Router does not generate new files — this should always be null. Present for schema consistency with other agents."
+          },
+          "content_summary": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Plain-language summary of what will be posted. Logged for audit; not the actual Teams message payload."
+          }
+        }
+      }
+    },
+
+    "escalations_fired": {
+      "type": "array",
+      "description": "All Escalation Matrix triggers that fired during this run. An empty array means no escalations. Any entry with halts_write=true means writes_proposed must not be executed.",
+      "items": {
+        "type": "object",
+        "required": ["trigger_id", "destination", "halts_write", "condition_matched"],
+        "additionalProperties": false,
+        "properties": {
+          "trigger_id": {
+            "type": "string",
+            "enum": [
+              "rfi_unclassifiable_after_inference",
+              "rfi_no_response_48hr",
+              "rfi_stale_source",
+              "rfi_conflicting_sources",
+              "rfi_tool_failure",
+              "rfi_delegate_not_found"
+            ],
+            "description": "Identifier matching a row in the Escalation Matrix SharePoint list."
+          },
+          "destination": {
+            "type": "string",
+            "description": "The Teams channel path the escalation is routed to. E.g. 'Teams → Project Channel → @PM'."
+          },
+          "halts_write": {
+            "type": "boolean",
+            "description": "When true, the proposed routing write is blocked. The agent writes only the escalation post, not the routing notification."
+          },
+          "condition_matched": {
+            "type": "string",
+            "description": "Human-readable description of what condition triggered this escalation. E.g. 'trade=unclassifiable after schema_parse + inference'."
+          },
+          "payload_summary": {
+            "type": ["string", "null"],
+            "maxLength": 500,
+            "description": "Additional context for the reviewer. E.g. 'filename: 2401-RFI-ElectricalLayout-v1.pdf; received_at: 2026-05-03T14:00:00Z'."
+          }
+        }
+      }
+    },
+
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "routed",
+        "escalated_no_trade",
+        "escalated_no_delegate",
+        "escalated_stale_source",
+        "escalated_tool_failure",
+        "halted_scope_violation",
+        "halted_triage"
+      ],
+      "description": "Final disposition of this run. 'routed' = routing notification written and tracking row opened. 'escalated_*' = a specific escalation fired and a review item was posted instead of a routing notification. 'halted_scope_violation' = pre-flight scope check failed. 'halted_triage' = filename did not conform to naming schema; file sent to triage channel."
+    },
+
+    "uncertainty": {
+      "type": ["object", "null"],
+      "description": "Present only when the agent cannot fully resolve a required field. An agent that emits uncertainty is performing correctly. Agents must not suppress uncertainty to appear complete.",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["insufficient_data", "ambiguous", "stale"],
+          "description": "Uncertainty type per Pillar III: insufficient_data when no source exists; ambiguous when two sources conflict; stale when only source is older than threshold."
+        },
+        "field": {
+          "type": "string",
+          "description": "Which output field is uncertain. E.g. 'classification.trade', 'routing.assigned_to_name'."
+        },
+        "detail": {
+          "type": "string",
+          "description": "Specific gap description. E.g. 'insufficient_data: no Delegation Register entry for @Estimator on job 2401', 'ambiguous: RFI subject implies both electrical and low_voltage'."
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "note_on_additionalProperties": {
+      "description": "additionalProperties: false is set on every object in this schema. This is intentional and required by the validator chain. Agents may not emit extra fields as a workaround for missing schema coverage. New fields must go through the change control process (monoboard_agent_constitution.md §Change Control) and be added here explicitly."
+    }
+  }
+}

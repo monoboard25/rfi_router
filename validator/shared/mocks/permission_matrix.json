@@ -1,0 +1,192 @@
+[
+  {
+    "agent_id": "rfi_router",
+    "scope_id": "teams_project_channel",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row RFI Router / Teams",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "rfi_router",
+    "scope_id": "sp_project_site",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row RFI Router / SP Project",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "daily_report",
+    "scope_id": "teams_project_channel",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Daily Report / Teams",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "daily_report",
+    "scope_id": "sp_project_site",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Daily Report / SP Project",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "daily_report",
+    "scope_id": "od_field",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Daily Report / OneDrive",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "change_order",
+    "scope_id": "teams_project_channel",
+    "access": "W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Change Order / Teams",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "change_order",
+    "scope_id": "sp_project_site",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Change Order / SP Project",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "change_order",
+    "scope_id": "sp_finance",
+    "access": "R/W",
+    "conditional": true,
+    "condition_notes": "Write is gated by the escalation validator. SP Finance write is only permitted when CO amount is UNDER threshold (\u2264$25k AND \u22645% contract value) AND no over-contingency trigger fires. If either escalation fires, write is blocked; draft posted to Teams only.",
+    "constitution_ref": "Pillar I footnote \u00b9; Escalation Matrix rows co_amount_threshold, co_over_contingency",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "safety_monitor",
+    "scope_id": "teams_project_channel",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Safety Monitor / Teams",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "safety_monitor",
+    "scope_id": "teams_safety_compliance",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Safety Monitor / Teams (Safety & Compliance channel)",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "safety_monitor",
+    "scope_id": "sp_intranet",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Safety Monitor / SP Intranet",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "safety_monitor",
+    "scope_id": "sp_project_site",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Safety Monitor / SP Project",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "bid_assist",
+    "scope_id": "teams_project_channel",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Bid Assist / Teams",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "bid_assist",
+    "scope_id": "teams_estimating",
+    "access": "R/W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Bid Assist / Teams (Estimating channel)",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "bid_assist",
+    "scope_id": "sp_intranet",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Bid Assist / SP Intranet",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "bid_assist",
+    "scope_id": "sp_project_site",
+    "access": "W",
+    "conditional": true,
+    "condition_notes": "Write limited to NEW project sites Bid Assist creates. No writes to existing project documents. Scope validator must confirm target URI is a newly provisioned site (creation timestamp within this run's window).",
+    "constitution_ref": "Pillar I footnote \u00b2",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "bid_assist",
+    "scope_id": "sp_finance",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I table, row Bid Assist / SP Finance",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "ceo_agent",
+    "scope_id": "teams_agent_governance",
+    "access": "W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I footnote \u00b3; CEO Agent \u00a7Scope / Writes",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "ceo_agent",
+    "scope_id": "sp_intranet_agent_governance",
+    "access": "W",
+    "conditional": false,
+    "condition_notes": "",
+    "constitution_ref": "Pillar I footnote \u00b3; CEO Agent \u00a7Scope / Writes",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  }
+]
