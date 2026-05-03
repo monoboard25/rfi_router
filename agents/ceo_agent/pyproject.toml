@@ -1,0 +1,17 @@
+[project]
+name = "ceo-agent"
+version = "0.1.0"
+description = "CEO Governance Agent"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "azure-functions",
+    "openai",
+    "azure-data-tables",
+    "pytest"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
