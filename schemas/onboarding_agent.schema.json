@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monoboard.ai/agent-governance/schemas/onboarding_agent.schema.json",
+  "title": "Onboarding Agent Output",
+  "description": "Structured output for the Onboarding agent. Initializes project infrastructure and governance files.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "agent_id",
+    "proposed_permission_matrix",
+    "proposed_folders",
+    "proposed_escalation_matrix",
+    "resolution_path",
+    "writes_proposed",
+    "outcome"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "agent_id": { "type": "string", "const": "onboarding_agent" },
+    "proposed_permission_matrix": {
+      "type": "object",
+      "required": ["job_number", "site_id", "mappings"],
+      "properties": {
+        "job_number": { "type": "string" },
+        "site_id": { "type": "string" },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["trade_prefix", "target_folder_uri"],
+            "properties": {
+              "trade_prefix": { "type": "string" },
+              "target_folder_uri": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "proposed_folders": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "proposed_escalation_matrix": {
+      "type": "object",
+      "required": ["job_number", "triggers"],
+      "properties": {
+        "job_number": { "type": "string" },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["trigger_id", "condition", "destination", "halts_write"],
+            "properties": {
+              "trigger_id": { "type": "string" },
+              "condition": { "type": "string" },
+              "destination": { "type": "string" },
+              "halts_write": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "resolution_path": {
+      "type": "string",
+      "const": "template"
+    },
+    "writes_proposed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_scope", "target_uri", "write_type"],
+        "properties": {
+          "target_scope": { "type": "string" },
+          "target_uri": { "type": "string" },
+          "write_type": { "type": "string" },
+          "content_summary": { "type": "string" }
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["completed_with_write", "halted_validation"]
+    }
+  }
+}

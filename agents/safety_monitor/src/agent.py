@@ -29,7 +29,14 @@ def detect_safety_hazards(photos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         # In a real scenario, we would use Multi-Modal capabilities (GPT-4o) 
         # to analyze the actual image URIs. For this scaffold, we analyze 
         # the provided text descriptions/metadata of the photos.
-        prompt = f"Analyze these field photo descriptions for potential safety hazards (PPE, falls, electrical). Return a list of signals with type, observation, and severity: {json.dumps(photos)}"
+        prompt = (
+            "Analyze these field photo descriptions and visual features for potential safety hazards. "
+            "Categorize findings based on the OSHA 'Fatal Four' and other standards: "
+            "FALL_PROTECTION, STRUCK_BY, CAUGHT_IN_BETWEEN, ELECTROCUTION, or PPE_VIOLATION. "
+            "Assign severity as 'critical' for IDLH (Immediate Danger to Life or Health) conditions, "
+            "'high' for serious violations, and 'info' for good practices: "
+            f"{json.dumps(photos)}"
+        )
         
         # Tools/Function calling for structured output
         tools = [{
@@ -44,7 +51,10 @@ def detect_safety_hazards(photos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "signal_type": {"type": "string", "enum": ["PPE_VIOLATION", "FALL_HAZARD", "ELECTRICAL_HAZARD", "GOOD_PRACTICE"]},
+                                    "signal_type": {
+                                        "type": "string", 
+                                        "enum": ["FALL_PROTECTION", "STRUCK_BY", "CAUGHT_IN_BETWEEN", "ELECTROCUTION", "PPE_VIOLATION", "GOOD_PRACTICE"]
+                                    },
                                     "observation": {"type": "string"},
                                     "severity": {"type": "string", "enum": ["low", "medium", "high", "critical", "info"]},
                                     "source_evidence_uri": {"type": "string"}

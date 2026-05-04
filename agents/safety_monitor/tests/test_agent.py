@@ -8,9 +8,9 @@ def test_run_safety_monitor_success(mock_detect, mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     mock_detect.return_value = [
         {
-            "signal_type": "PPE_VIOLATION",
-            "observation": "Subcontractor spotted without hard hat in zone 4.",
-            "severity": "medium",
+            "signal_type": "FALL_PROTECTION",
+            "observation": "Worker spotted on 3rd floor deck without lanyard attached.",
+            "severity": "critical",
             "source_evidence_uri": "https://tenant.sharepoint.com/photo1.jpg"
         }
     ]
@@ -26,7 +26,7 @@ def test_run_safety_monitor_success(mock_detect, mock_validator):
     
     assert result["outcome"] == "completed_with_write"
     assert len(result["safety_signals"]) == 1
-    assert result["safety_signals"][0]["signal_type"] == "PPE_VIOLATION"
+    assert result["safety_signals"][0]["signal_type"] == "FALL_PROTECTION"
     assert result["writes_proposed"][0]["target_scope"] == "teams_project_channel"
 
 @patch('src.agent.ValidatorClient.validate')
