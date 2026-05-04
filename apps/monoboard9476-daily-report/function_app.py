@@ -51,3 +51,8 @@ def manual_daily_report(req: func.HttpRequest) -> func.HttpResponse:
         json.dumps({"report": report, "validator": decision}),
         mimetype="application/json",
     )
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")

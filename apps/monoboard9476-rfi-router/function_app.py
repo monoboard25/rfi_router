@@ -42,3 +42,8 @@ def route_rfi(req: func.HttpRequest) -> func.HttpResponse:
         json.dumps({"rfi_id": rfi_id, "target": target, "validator": decision}),
         mimetype="application/json",
     )
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")

@@ -46,3 +46,8 @@ def evaluate_change_order(req: func.HttpRequest) -> func.HttpResponse:
         json.dumps({"co_id": co_id, "amount": amount, "requires_approval": requires_approval, "validator": decision}),
         mimetype="application/json",
     )
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")
