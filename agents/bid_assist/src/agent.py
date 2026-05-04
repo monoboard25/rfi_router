@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from openai import AzureOpenAI
 from typing import Dict, Any, List
 
-from validator_client import ValidatorClient
+from .validator_client import ValidatorClient
 
 AGENT_VERSION = "1.0.0"
 CONSTITUTION_VERSION = "1.2"
@@ -76,6 +76,9 @@ def generate_takeoff_checklist(bid_text: str) -> Dict[str, Any]:
             temperature=0.0
         )
         
+        if not response.choices or not response.choices[0].message.tool_calls:
+            return {"takeoff_checklist": [], "historical_insights": []}
+
         args = response.choices[0].message.tool_calls[0].function.arguments
         parsed = json.loads(args)
         return parsed
@@ -106,14 +109,13 @@ def run_bid_assist_agent(payload: Dict[str, Any]) -> Dict[str, Any]:
         "run_id": run_id,
         "agent_id": "bid_assist",
         "agent_version": AGENT_VERSION,
-        "constitution_version": AGENT_VERSION, # Fixed to constitution version later
+        "constitution_version": CONSTITUTION_VERSION,
         "takeoff_checklist": analysis["takeoff_checklist"],
         "historical_insights": analysis["historical_insights"],
         "resolution_path": "retrieval",
         "writes_proposed": writes_proposed,
         "outcome": outcome
     }
-    output["constitution_version"] = CONSTITUTION_VERSION
 
     # 3. Validation
     validator = ValidatorClient()

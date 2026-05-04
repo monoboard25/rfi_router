@@ -13,3 +13,10 @@ def validate(req: func.HttpRequest) -> func.HttpResponse:
         "Validator Chain Orchestrator endpoint ready.",
         status_code=200
     )
+
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")
+

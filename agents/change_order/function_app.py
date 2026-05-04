@@ -31,3 +31,10 @@ def route_co(req: func.HttpRequest) -> func.HttpResponse:
              f"Internal Server Error: {str(e)}",
              status_code=500
         )
+
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")
+

@@ -1,13 +1,13 @@
 import logging
 import azure.functions as func
 import json
-from src.agent import run_rfi_router_agent
+from src.agent import run_bid_assist_agent
 
 app = func.FunctionApp()
 
-@app.route(route="route_rfi")
-def route_rfi(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed an RFI routing request.')
+@app.route(route="bid_assist")
+def bid_assist(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Python HTTP trigger function processed a Bid Assist request.')
 
     try:
         req_body = req.get_json()
@@ -18,8 +18,8 @@ def route_rfi(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
-        # Pass the webhook payload to the agent brain
-        result_dict = run_rfi_router_agent(req_body)
+        # Pass the payload to the agent brain
+        result_dict = run_bid_assist_agent(req_body)
         
         return func.HttpResponse(
             body=json.dumps(result_dict),
@@ -27,7 +27,7 @@ def route_rfi(req: func.HttpRequest) -> func.HttpResponse:
             status_code=200
         )
     except Exception as e:
-        logging.error(f"Error in RFI Router: {str(e)}")
+        logging.error(f"Error in Bid Assist Agent: {str(e)}")
         return func.HttpResponse(
              f"Internal Server Error: {str(e)}",
              status_code=500

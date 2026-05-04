@@ -40,3 +40,10 @@ def run_governance_cycle():
     logging.info(f"Summary metrics: {metrics['total_runs']} runs, ${metrics['total_cost']} cost.")
     
     return scorecard_md
+
+
+
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse('{"status":"ok"}', mimetype="application/json")
+

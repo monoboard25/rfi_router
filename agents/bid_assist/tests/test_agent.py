@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from agent import run_bid_assist_agent
+from src.agent import run_bid_assist_agent
 
-@patch('agent.ValidatorClient.validate')
-@patch('agent.generate_takeoff_checklist')
+@patch('src.agent.ValidatorClient.validate')
+@patch('src.agent.generate_takeoff_checklist')
 def test_run_bid_assist_success(mock_analyze, mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     mock_analyze.return_value = {
@@ -26,8 +26,8 @@ def test_run_bid_assist_success(mock_analyze, mock_validator):
     assert result["takeoff_checklist"][0]["item_name"] == "Concrete Foundation"
     assert result["writes_proposed"][0]["target_scope"] == "teams_estimating_channel"
 
-@patch('agent.ValidatorClient.validate')
-@patch('agent.generate_takeoff_checklist')
+@patch('src.agent.ValidatorClient.validate')
+@patch('src.agent.generate_takeoff_checklist')
 def test_run_bid_assist_empty(mock_analyze, mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     mock_analyze.return_value = {"takeoff_checklist": [], "historical_insights": []}
