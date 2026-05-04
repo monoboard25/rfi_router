@@ -30,6 +30,9 @@ We track how often agents rely on expensive LLM inference vs. deterministic sche
 - **Deterministic (Schema Parse)**: {metrics['resolution_drift']['schema_parse']} runs
 - **Inference (Azure OpenAI)**: {metrics['resolution_drift']['inference']} runs
 
+## 🚨 Active Governance Alerts
+{self._format_alerts(metrics.get('alerts', []))}
+
 ## 🚀 Throughput by Agent
 {self._format_dict(metrics['throughput'])}
 
@@ -48,6 +51,10 @@ We track how often agents rely on expensive LLM inference vs. deterministic sche
     def _format_dict(self, d):
         if not d: return "None recorded."
         return "\n".join([f"- **{k}**: {v}" for k, v in d.items()])
+
+    def _format_alerts(self, alerts):
+        if not alerts: return "✅ No critical anomalies detected."
+        return "\n".join([f"- **[{a['type']}]** ({a['severity'].upper()}): {a['message']}" for a in alerts])
 
     def _get_llm_recommendation(self, metrics: Dict[str, Any]) -> str:
         if not all([self.endpoint, self.key, self.deployment]):

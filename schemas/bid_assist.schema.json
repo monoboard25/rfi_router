@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monoboard.ai/agent-governance/schemas/bid_assist.schema.json",
+  "title": "Bid Assist Agent Output",
+  "description": "Structured output for the Bid Assist agent. Drafts takeoff checklists and highlights historical cost outliers.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "agent_id",
+    "agent_version",
+    "constitution_version",
+    "takeoff_checklist",
+    "historical_insights",
+    "resolution_path",
+    "writes_proposed",
+    "outcome"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "agent_id": { "type": "string", "const": "bid_assist" },
+    "agent_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "constitution_version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+    "takeoff_checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_name", "category", "estimated_quantity"],
+        "properties": {
+          "item_name": { "type": "string" },
+          "category": { "type": "string" },
+          "estimated_quantity": { "type": "number" },
+          "unit": { "type": "string" }
+        }
+      }
+    },
+    "historical_insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["observation", "impact_rating"],
+        "properties": {
+          "observation": { "type": "string" },
+          "impact_rating": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "resolution_path": {
+      "type": "string",
+      "const": "retrieval"
+    },
+    "writes_proposed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target_scope", "target_uri", "write_type"],
+        "properties": {
+          "target_scope": { "type": "string" },
+          "target_uri": { "type": "string", "format": "uri" },
+          "write_type": { "type": "string" },
+          "content_summary": { "type": "string" }
+        }
+      }
+    },
+    "escalations_fired": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger_id", "destination", "halts_write"],
+        "properties": {
+          "trigger_id": { "type": "string" },
+          "destination": { "type": "string" },
+          "halts_write": { "type": "boolean" }
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["completed_with_write", "halted_validation", "insufficient_data"]
+    }
+  }
+}

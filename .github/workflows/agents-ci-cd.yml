@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        agent: [rfi_router, change_order, daily_report, ceo_agent]
+        agent: [rfi_router, change_order, daily_report, ceo_agent, safety_monitor, bid_assist]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -64,6 +64,10 @@ jobs:
             app_name: monoboard-daily-report
           - agent: ceo_agent
             app_name: monoboard-ceo-agent
+          - agent: safety_monitor
+            app_name: monoboard-safety-monitor
+          - agent: bid_assist
+            app_name: monoboard-bid-assist
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

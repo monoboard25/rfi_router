@@ -90,3 +90,43 @@ class LogAnalyticsClient:
             metrics["latency_avg_ms"] = metrics["latency_total"] // metrics["total_runs"]
 
         return metrics
+
+    def detect_anomalies(self, metrics: Dict[str, Any], thresholds: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        # Default thresholds
+        t = thresholds or {
+            "cost_ceiling_daily": 10.0,
+            "failure_rate_threshold": 20.0, # percentage
+            "latency_spike_ms": 10000
+        }
+        
+        alerts = []
+        
+        # 1. Cost Ceiling
+        if metrics.get("total_cost", 0.0) > t["cost_ceiling_daily"]:
+            alerts.append({
+                "type": "COST_CRITICAL",
+                "message": f"Ecosystem daily cost (${metrics['total_cost']:.2f}) has exceeded the ${t['cost_ceiling_daily']:.2f} ceiling.",
+                "severity": "high"
+            })
+            
+        # 2. Validation Crisis
+        total = metrics.get("total_runs", 0)
+        if total > 0:
+            fail_rate = (metrics["validator_health"]["fail"] / total) * 100
+            if fail_rate > t["failure_rate_threshold"]:
+                alerts.append({
+                    "type": "VALIDATION_CRISIS",
+                    "message": f"Validator failure rate is critically high ({fail_rate:.1f}%). Threshold is {t['failure_rate_threshold']}%.",
+                    "severity": "critical"
+                })
+                
+        # 3. Latency Spikes
+        # This would ideally check individual logs for > 10s, but for now we check the average
+        if metrics.get("latency_avg_ms", 0) > t["latency_spike_ms"]:
+            alerts.append({
+                "type": "LATENCY_SPIKE",
+                "message": f"Average ecosystem latency ({metrics['latency_avg_ms']}ms) has exceeded the {t['latency_spike_ms']}ms threshold.",
+                "severity": "medium"
+            })
+            
+        return alerts

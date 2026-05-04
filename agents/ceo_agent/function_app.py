@@ -28,7 +28,10 @@ def run_governance_cycle():
     # 2. Compute Metrics
     metrics = log_client.compute_metrics(logs)
     
-    # 3. Generate Scorecard
+    # 3. Detect Anomalies
+    metrics["alerts"] = log_client.detect_anomalies(metrics)
+    
+    # 4. Generate Scorecard
     generator = ScorecardGenerator()
     scorecard_md = generator.generate_markdown(metrics)
     

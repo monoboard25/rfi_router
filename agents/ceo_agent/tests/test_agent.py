@@ -26,3 +26,19 @@ def test_compute_metrics_empty():
     metrics = client.compute_metrics([])
     assert metrics["total_runs"] == 0
     assert metrics["total_cost"] == 0.0
+    
+def test_detect_anomalies():
+    client = LogAnalyticsClient(connection_string="dummy")
+    metrics = {
+        "total_runs": 100,
+        "total_cost": 15.0, # Over $10 ceiling
+        "validator_health": {"pass": 70, "fail": 30}, # 30% fail > 20% threshold
+        "latency_avg_ms": 500
+    }
+    
+    alerts = client.detect_anomalies(metrics)
+    alert_types = [a["type"] for a in alerts]
+    
+    assert "COST_CRITICAL" in alert_types
+    assert "VALIDATION_CRISIS" in alert_types
+    assert "LATENCY_SPIKE" not in alert_types
