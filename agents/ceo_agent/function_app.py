@@ -2,9 +2,6 @@ import logging
 import azure.functions as func
 import json
 from src.log_client import LogAnalyticsClient
-from src.scorecard.scorecard import ScorecardGenerator # Fixed import path if needed, but I used src.scorecard
-
-# Correcting import based on structure
 from src.scorecard import ScorecardGenerator
 
 app = func.FunctionApp()
