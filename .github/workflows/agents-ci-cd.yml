@@ -100,3 +100,5 @@ jobs:
         with:
           app-name: ${{ matrix.app_name }}
           package: agents/${{ matrix.agent }}
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true
