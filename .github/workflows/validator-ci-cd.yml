@@ -70,8 +70,14 @@ jobs:
 
       - name: Resolve Project Dependencies
         working-directory: ${{ env.FUNCTION_DIR }}
-        run: uv export --format requirements-txt > requirements.txt
-          
+        run: uv export --format requirements-txt --no-hashes > requirements.txt
+
+      - name: Vendor Dependencies (.python_packages)
+        working-directory: ${{ env.FUNCTION_DIR }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -84,5 +90,3 @@ jobs:
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.FUNCTION_DIR }}
-          scm-do-build-during-deployment: true
-          enable-oryx-build: true
