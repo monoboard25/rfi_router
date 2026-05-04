@@ -57,19 +57,19 @@ jobs:
       matrix:
         include:
           - agent: rfi_router
-            app_name: monoboard-rfi-router
+            app_name: monoboard9476-rfi-router
           - agent: change_order
-            app_name: monoboard-change-order
+            app_name: monoboard9476-change-order
           - agent: daily_report
-            app_name: monoboard-daily-report
+            app_name: monoboard9476-daily-report
           - agent: ceo_agent
-            app_name: monoboard-ceo-agent
+            app_name: monoboard9476-ceo-agent
           - agent: safety_monitor
-            app_name: monoboard-safety-monitor
+            app_name: monoboard9476-safety-monitor
           - agent: bid_assist
-            app_name: monoboard-bid-assist
+            app_name: monoboard9476-bid-assist
           - agent: onboarding_agent
-            app_name: monoboard-onboarding-agent
+            app_name: monoboard9476-onboarding-agent
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

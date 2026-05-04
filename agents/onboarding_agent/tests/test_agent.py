@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.agent import run_onboarding_agent
+from agent import run_onboarding_agent
 
-@patch('src.agent.ValidatorClient.validate')
+@patch('agent.ValidatorClient.validate')
 def test_run_onboarding_success(mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     

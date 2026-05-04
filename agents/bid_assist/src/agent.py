@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from openai import AzureOpenAI
 from typing import Dict, Any, List
 
-from .validator_client import ValidatorClient
+from validator_client import ValidatorClient
 
 AGENT_VERSION = "1.0.0"
 CONSTITUTION_VERSION = "1.2"

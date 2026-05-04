@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.agent import run_safety_monitor_agent
+from agent import run_safety_monitor_agent
 
-@patch('src.agent.ValidatorClient.validate')
-@patch('src.agent.detect_safety_hazards')
+@patch('agent.ValidatorClient.validate')
+@patch('agent.detect_safety_hazards')
 def test_run_safety_monitor_success(mock_detect, mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     mock_detect.return_value = [
@@ -29,8 +29,8 @@ def test_run_safety_monitor_success(mock_detect, mock_validator):
     assert result["safety_signals"][0]["signal_type"] == "FALL_PROTECTION"
     assert result["writes_proposed"][0]["target_scope"] == "teams_project_channel"
 
-@patch('src.agent.ValidatorClient.validate')
-@patch('src.agent.detect_safety_hazards')
+@patch('agent.ValidatorClient.validate')
+@patch('agent.detect_safety_hazards')
 def test_run_safety_monitor_clean_site(mock_detect, mock_validator):
     mock_validator.return_value = {"pass": True, "results": {}}
     mock_detect.return_value = []

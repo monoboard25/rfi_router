@@ -15,7 +15,7 @@ on:
       - '.github/workflows/validator-ci-cd.yml'
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'monoboard-validator'
+  AZURE_FUNCTIONAPP_NAME: 'monoboard9476-validator'
   PYTHON_VERSION: '3.11'
   FUNCTION_DIR: 'validator'
 

@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 from typing import Dict, Any, List
-from .validator_client import ValidatorClient
+from validator_client import ValidatorClient
 
 AGENT_VERSION = "1.0.0"
 

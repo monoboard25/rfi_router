@@ -12,16 +12,16 @@ This runbook provides the exact steps to deploy the Monoboard Agent Governance e
 Create the following resources in the `agent-monoboard-prod` resource group.
 
 ### 1. Storage Account
-- **Name**: `stmonoboardprodlog` (must be globally unique)
+- **Name**: `stmonoboard9476log` (must be globally unique)
 - **Use**: Hosting the `agentruns` Table Storage.
 
 ### 2. Function Apps (Python 3.11, Consumption Plan)
 Create 5 Function Apps with the following names:
-1. `monoboard-validator`
-2. `monoboard-rfi-router`
-3. `monoboard-change-order`
-4. `monoboard-daily-report`
-5. `monoboard-ceo-agent`
+1. `monoboard9476-validator`
+2. `monoboard9476-rfi-router`
+3. `monoboard9476-change-order`
+4. `monoboard9476-daily-report`
+5. `monoboard9476-ceo-agent`
 
 ---
 
@@ -30,17 +30,17 @@ Create 5 Function Apps with the following names:
 To allow GitHub Actions to deploy code without using passwords/secrets, we use OpenID Connect (OIDC).
 
 1. **Create App Registration**:
-   - Go to **Microsoft Entra ID** -> **App registrations** -> **New registration**.
+   - Go to **Microsoft Entra ID** → **App registrations** → **New registration**.
    - Name: `monoboard-github-deployer`.
 2. **Add Federated Credentials**:
-   - Go to the new registration -> **Certificates & secrets** -> **Federated credentials** -> **Add credential**.
+   - Go to the new registration → **Certificates & secrets** → **Federated credentials** → **Add credential**.
    - **Federated credential scenario**: `GitHub Actions deploying Azure resources`.
    - **Organization**: Your GitHub Username/Org.
    - **Repository**: `monoboard.ai` (or your repo name).
    - **Entity type**: `Branch`.
    - **Branch**: `main`.
 3. **Assign Permissions**:
-   - Go to your **Subscription** -> **Access control (IAM)** -> **Add role assignment**.
+   - Go to your **Subscription** → **Access control (IAM)** → **Add role assignment**.
    - **Role**: `Contributor`.
    - **Assign access to**: `User, group, or service principal`.
    - **Select**: `monoboard-github-deployer`.
@@ -50,7 +50,7 @@ To allow GitHub Actions to deploy code without using passwords/secrets, we use O
 ## Phase 3: GitHub Configuration
 
 Add the following **Secrets** to your GitHub Repository:
-`Settings` -> `Secrets and variables` -> `Actions`.
+`Settings` → `Secrets and variables` → `Actions`.
 
 | Secret Name | Value Source |
 | --- | --- |
@@ -62,16 +62,16 @@ Add the following **Secrets** to your GitHub Repository:
 
 ## Phase 4: Azure App Settings (Environment Variables)
 
-In the Azure Portal, go to each Function App -> **Settings** -> **Configuration** -> **Application settings**.
+In the Azure Portal, go to each Function App → **Settings** → **Configuration** → **Application settings**.
 
 ### For ALL Agents (RFI, CO, Daily, CEO)
 - `AZURE_OPENAI_ENDPOINT`: Your Azure OpenAI Service endpoint.
 - `AZURE_OPENAI_KEY`: Your Azure OpenAI API Key.
 - `AZURE_OPENAI_DEPLOYMENT`: The name of your GPT-4/GPT-3.5 deployment.
-- `VALIDATOR_API_URL`: `https://monoboard-validator.azurewebsites.net/api/validate`
+- `VALIDATOR_API_URL`: `https://monoboard9476-validator.azurewebsites.net/api/validate`
 
 ### For the Validator App
-- `AZURE_TABLE_CONNECTION_STRING`: Connection string for `stmonoboardprodlog`.
+- `AZURE_TABLE_CONNECTION_STRING`: Connection string for `stmonoboard9476log`.
 - `SP_TENANT_ID`: Your M365 Tenant ID.
 - `SP_SITE_ID`: The SharePoint Site ID where your matrices live.
 
@@ -85,4 +85,4 @@ Once the steps above are complete, simply push a small change to your `main` bra
 
 > [!CHECKPOINT]
 > After deployment, you can verify the status by visiting the CEO Agent's manual endpoint:
-> `https://monoboard-ceo-agent.azurewebsites.net/api/manual_governance_report`
+> `https://monoboard9476-ceo-agent.azurewebsites.net/api/manual_governance_report`
