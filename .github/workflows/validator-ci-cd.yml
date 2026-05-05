@@ -18,6 +18,7 @@ env:
   AZURE_FUNCTIONAPP_NAME: 'monoboard9476-validator'
   PYTHON_VERSION: '3.11'
   FUNCTION_DIR: 'validator'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 permissions:
   id-token: write # Required for requesting the JWT for OIDC
