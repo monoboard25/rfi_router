@@ -1,54 +1,68 @@
-import os
+"""Matrix fetcher backed by Azure Blob Storage.
+
+Class name kept as `SharePointListFetcher` for backward compatibility with
+existing tests/imports. Reads JSON arrays from blobs in a single container.
+
+Env vars:
+- MATRIX_CONNECTION_STRING (or AZURE_TABLE_CONNECTION_STRING / AzureWebJobsStorage)
+- MATRIX_CONTAINER (default: "matrices")
+- PERMISSION_MATRIX_BLOB (default: "permission_matrix.json")
+- ESCALATION_MATRIX_BLOB (default: "escalation_matrix.json")
+"""
+
+import json
 import logging
-import asyncio
-from typing import List, Dict
+import os
 from functools import lru_cache
-from azure.identity import DefaultAzureCredential
-from msgraph import GraphServiceClient
+from typing import Dict, List
 
-class SharePointListFetcher:
+from azure.storage.blob import BlobServiceClient
+
+
+def _conn_string() -> str:
+    for name in ("MATRIX_CONNECTION_STRING", "AZURE_TABLE_CONNECTION_STRING", "AzureWebJobsStorage"):
+        v = os.getenv(name)
+        if v:
+            return v
+    return ""
+
+
+class SharePointListFetcher:  # name kept for compat
+    """Reads governance matrices from Azure Blob Storage."""
+
     def __init__(self):
-        self.tenant_id = os.getenv("SP_TENANT_ID")
-        self.site_id = os.getenv("SP_SITE_ID")
-        self.permission_list_id = os.getenv("SP_PERMISSION_LIST_ID")
-        self.escalation_list_id = os.getenv("SP_ESCALATION_LIST_ID")
-        
-        if self.tenant_id and self.site_id:
+        self.conn = _conn_string()
+        self.container = os.getenv("MATRIX_CONTAINER", "matrices")
+        self.permission_blob = os.getenv("PERMISSION_MATRIX_BLOB", "permission_matrix.json")
+        self.escalation_blob = os.getenv("ESCALATION_MATRIX_BLOB", "escalation_matrix.json")
+        self._client = None
+        if self.conn:
             try:
-                credential = DefaultAzureCredential()
-                self.client = GraphServiceClient(credentials=credential, scopes=["https://graph.microsoft.com/.default"])
-            except Exception as e:
-                logging.error(f"Failed to initialize Graph client: {e}")
-                self.client = None
-        else:
-            self.client = None
+                self._client = BlobServiceClient.from_connection_string(self.conn)
+            except Exception as exc:
+                logging.error("Failed to init BlobServiceClient: %s", exc)
 
-    async def _get_list_items(self, list_id: str) -> List[Dict]:
-        if not self.client or not list_id:
+    def _read_json_blob(self, blob_name: str) -> List[Dict]:
+        if not self._client:
             return []
         try:
-            result = await self.client.sites.by_site_id(self.site_id).lists.by_list_id(list_id).items.get()
-            
-            rows = []
-            if result and result.value:
-                for item in result.value:
-                    if hasattr(item, 'fields') and item.fields:
-                        fields_dict = item.fields.additional_data
-                        for k, v in fields_dict.items():
-                            if v == "1": fields_dict[k] = True
-                            elif v == "0": fields_dict[k] = False
-                        rows.append(fields_dict)
-            return rows
-        except Exception as e:
-            logging.error(f"MS Graph API Error fetching list {list_id}: {e}")
+            blob = self._client.get_blob_client(container=self.container, blob=blob_name)
+            data = blob.download_blob().readall()
+            payload = json.loads(data)
+            if isinstance(payload, list):
+                return payload
+            if isinstance(payload, dict) and "items" in payload:
+                return payload["items"]
+            logging.warning("Blob %s/%s payload not a list", self.container, blob_name)
+            return []
+        except Exception as exc:
+            logging.warning("Blob fetch failed (%s/%s): %s", self.container, blob_name, exc)
             return []
 
     @lru_cache(maxsize=1)
     def fetch_permission_matrix(self) -> List[Dict]:
-        """Fetches the Permission Matrix list items synchronously. Cached in memory."""
-        return asyncio.run(self._get_list_items(self.permission_list_id))
+        return self._read_json_blob(self.permission_blob)
 
     @lru_cache(maxsize=1)
     def fetch_escalation_matrix(self) -> List[Dict]:
-        """Fetches the Escalation Matrix list items synchronously. Cached in memory."""
-        return asyncio.run(self._get_list_items(self.escalation_list_id))
+        return self._read_json_blob(self.escalation_blob)
