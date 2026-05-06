@@ -1,0 +1,59 @@
+{
+  "run_id": "d0e1f2a3-b4c5-4678-d9e0-f1a2b3c4d5e6",
+  "agent_id": "onboarding_agent",
+
+  "proposed_permission_matrix": {
+    "job_number": "2509",
+    "site_id": "project-2509",
+    "mappings": [
+      {
+        "trade_prefix": "ELEC",
+        "target_folder_uri": "https://monoboard.sharepoint.com/sites/project-2509/Shared%20Documents/Electrical/"
+      },
+      {
+        "trade_prefix": "PLUM",
+        "target_folder_uri": "https://monoboard.sharepoint.com/sites/project-2509/Shared%20Documents/Plumbing/"
+      }
+    ]
+  },
+
+  "proposed_folders": [
+    "Shared Documents/RFIs",
+    "Shared Documents/COs",
+    "Shared Documents/Reports",
+    "Shared Documents/Photos",
+    "governance/permission_matrix.json",
+    "governance/escalation_matrix.json"
+  ],
+
+  "proposed_escalation_matrix": {
+    "job_number": "2509",
+    "triggers": [
+      {
+        "trigger_id": "CO_AMOUNT_OVER_10K",
+        "condition": "financials.amount > 10000",
+        "destination": "@Exec",
+        "halts_write": true
+      },
+      {
+        "trigger_id": "PPE_HIGH_SEVERITY",
+        "condition": "safety_signals[].severity in ['high','critical']",
+        "destination": "@SafetyOfficer",
+        "halts_write": false
+      }
+    ]
+  },
+
+  "resolution_path": "template",
+
+  "writes_proposed": [
+    {
+      "target_scope": "sp_site_create",
+      "target_uri": "https://monoboard.sharepoint.com/sites/project-2509",
+      "write_type": "site_provision",
+      "content_summary": "Initialize project-2509 with governance scaffolding"
+    }
+  ],
+
+  "outcome": "completed_with_write"
+}

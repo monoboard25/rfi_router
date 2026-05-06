@@ -1,0 +1,42 @@
+{
+  "run_id": "f6a7b8c9-d0e1-4234-f5a6-b7c8d9e0f1a2",
+  "agent_id": "safety_monitor",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "safety_signals": [
+    {
+      "signal_type": "PPE_VIOLATION",
+      "observation": "Worker visible without hard hat in elevated work zone",
+      "severity": "high",
+      "source_evidence_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Photos/2026-05-03/IMG_0099.jpg"
+    },
+    {
+      "signal_type": "GOOD_PRACTICE",
+      "observation": "Fall arrest harness properly anchored on roof crew",
+      "severity": "info",
+      "source_evidence_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Photos/2026-05-03/IMG_0100.jpg"
+    }
+  ],
+
+  "resolution_path": "inference",
+
+  "writes_proposed": [
+    {
+      "target_scope": "teams_safety_channel",
+      "target_uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-safety%40thread.tacv2",
+      "write_type": "post",
+      "content_summary": "1 PPE violation flagged (high severity), 1 good practice noted."
+    }
+  ],
+
+  "escalations_fired": [
+    {
+      "trigger_id": "PPE_HIGH_SEVERITY",
+      "destination": "@SafetyOfficer",
+      "halts_write": false
+    }
+  ],
+
+  "outcome": "completed_with_write"
+}

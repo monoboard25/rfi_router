@@ -1,0 +1,22 @@
+[
+  {
+    "uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-electrical%40thread.tacv2",
+    "scope_id": "teams_project_channel",
+    "description": "Project 2401 / Electrical channel"
+  },
+  {
+    "uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-finance%40thread.tacv2",
+    "scope_id": "teams_project_channel",
+    "description": "Project 2401 / Finance channel"
+  },
+  {
+    "uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-safety%40thread.tacv2",
+    "scope_id": "teams_project_channel",
+    "description": "Project 2401 / Safety channel"
+  },
+  {
+    "uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-general%40thread.tacv2",
+    "scope_id": "teams_project_channel",
+    "description": "Project 2401 / General channel"
+  }
+]

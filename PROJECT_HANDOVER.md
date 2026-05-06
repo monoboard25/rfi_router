@@ -56,7 +56,11 @@ The system uses **GitHub Actions with OIDC**. No passwords or client secrets are
 - **Validator CI/CD**: Deploys the governance brain.
 - **Agents CI/CD**: Deploys the entire fleet in parallel.
 
-## 4. Emergency Procedures
+## 4. Open Tracked Backlog
+
+- **Escalation Matrix ↔ Schema drift** — `monoboard_matrix_schema_drift.md`. 19 of 20 escalation rules reference fields that don't exist in the corresponding agent schemas; rules silently no-op. Must be resolved before Agent #1 (RFI Router) ships. Includes 7 human decisions queued for CFO, Safety Officer, Lead Estimator, Principal Owners.
+
+## 5. Emergency Procedures
 
 ### The Kill Switch
 If an agent behaves unexpectedly:

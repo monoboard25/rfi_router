@@ -17,9 +17,10 @@ class ScopeValidator:
             self.permission_matrix = self._load_json(os.path.join(self.mocks_dir, "permission_matrix.json"), [])
 
         self.uri_mapping = self._load_json(os.path.join(self.shared_dir, "uri_scope_mapping.json"), [])
-        
-        # Sort uri_mapping by priority
         self.uri_mapping.sort(key=lambda x: x.get('priority', 99))
+
+        registry = self._load_json(os.path.join(self.shared_dir, "teams_channel_registry.json"), [])
+        self.channel_registry = {row["uri"]: row["scope_id"] for row in registry if row.get("uri") and row.get("scope_id")}
 
     def _load_json(self, path, default):
         if os.path.exists(path):
@@ -28,6 +29,8 @@ class ScopeValidator:
         return default
 
     def _resolve_scope(self, target_uri: str) -> str:
+        if target_uri in self.channel_registry:
+            return self.channel_registry[target_uri]
         for mapping in self.uri_mapping:
             pattern = mapping.get("uri_pattern")
             if pattern and re.match(pattern, target_uri):

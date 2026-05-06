@@ -379,6 +379,7 @@ Before Agent #1 (RFI Router) begins build, every item below must be `Done`.
 - [ ] Scope validator implemented; reads Permission Matrix from SharePoint; unit tests pass
 - [ ] Naming validator implemented; regex matches Constitution; unit tests pass
 - [ ] Escalation validator implemented; DSL evaluator supports the required expressions; unit tests pass
+- [ ] **Escalation Matrix ↔ Schema drift resolved** — see `monoboard_matrix_schema_drift.md`. 19 of 20 rules currently dead-code; cannot ship Agent #1 with silently no-op rules.
 - [ ] End-to-end integration test against a sample RFI Router output
 - [ ] Managed Identity auth configured
 
