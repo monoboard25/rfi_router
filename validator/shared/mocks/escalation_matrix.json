@@ -13,7 +13,7 @@
   {
     "agent_id": "rfi_router",
     "trigger_id": "rfi_no_response_48h",
-    "condition_expression": "output.status == 'open' AND output.days_open >= 2",
+    "condition_expression": "output.tracking_row.status == 'open' AND output.tracking_row.days_open >= 2",
     "destination": "Teams \u2192 Project Channel \u2192 @PM + @Super",
     "halts_write": false,
     "agent_action": "Continue to track; do not re-route",
@@ -24,7 +24,7 @@
   {
     "agent_id": "daily_report",
     "trigger_id": "daily_missing_photos",
-    "condition_expression": "output.logged_crew_hours > 0 AND output.photo_count == 0",
+    "condition_expression": "sum_crew_hours(output.crew_hours) > 0 AND len(output.field_evidence) == 0",
     "destination": "Teams \u2192 Project Channel \u2192 @Super",
     "halts_write": false,
     "agent_action": "Generate report with missing_photos flag",
@@ -35,7 +35,7 @@
   {
     "agent_id": "daily_report",
     "trigger_id": "daily_safety_keywords",
-    "condition_expression": "contains_any(output.notes, SAFETY_KEYWORDS)",
+    "condition_expression": "contains_any(output.narrative.summary, SAFETY_KEYWORDS) OR contains_any(output.narrative.roadblocks, SAFETY_KEYWORDS)",
     "destination": "Handoff to Safety Monitor via Safety & Compliance",
     "halts_write": false,
     "agent_action": "Complete daily; do not add safety interpretation",
@@ -46,7 +46,7 @@
   {
     "agent_id": "change_order",
     "trigger_id": "co_amount_threshold",
-    "condition_expression": "output.amount > 25000 OR output.amount > (output.contract_value * 0.05)",
+    "condition_expression": "output.financials.amount > 25000 OR output.financials.amount > (output.financials.contract_value * 0.05)",
     "destination": "Teams \u2192 Project Channel \u2192 @PM + @Exec",
     "halts_write": true,
     "agent_action": "Draft budget projection; do not write to SP Finance",
@@ -189,7 +189,7 @@
   {
     "agent_id": "all",
     "trigger_id": "general_stale_data",
-    "condition_expression": "output.source_artifact_age_days > output.freshness_threshold_days",
+    "condition_expression": "any_stale(output.sources_cited)",
     "destination": "Teams \u2192 Agent Review Queue",
     "halts_write": true,
     "agent_action": "Routes to review",
@@ -211,7 +211,7 @@
   {
     "agent_id": "all",
     "trigger_id": "general_tool_failure",
-    "condition_expression": "output.tool_failure_count > 1",
+    "condition_expression": "count_failed_attempts(output.resolution_path_attempts) > 1",
     "destination": "Teams \u2192 Agent Review Queue",
     "halts_write": true,
     "agent_action": "Routes to review; no inference substitution",

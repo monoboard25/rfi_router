@@ -27,6 +27,38 @@ class EscalationValidator:
         return any(kw.lower() in text_lower for kw in keywords)
 
     @staticmethod
+    def _sum_crew_hours(crew_hours):
+        if not crew_hours: return 0
+        return sum((row.get("hours", 0) if isinstance(row, dict) else 0) for row in crew_hours)
+
+    @staticmethod
+    def _any_stale(sources_cited):
+        if not sources_cited: return False
+        return any(
+            (s.get("freshness_ok") is False) if isinstance(s, dict) else False
+            for s in sources_cited
+        )
+
+    @staticmethod
+    def _count_failed_attempts(attempts):
+        if not attempts: return 0
+        return sum(1 for a in attempts if isinstance(a, dict) and a.get("outcome") == "fail")
+
+    def _signals_match_keywords(self, signals, keywords):
+        if not signals: return False
+        joined = " ".join(s.get("observation", "") for s in signals if isinstance(s, dict))
+        return self._contains_any(joined, keywords)
+
+    @staticmethod
+    def _any_severity(signals, levels):
+        if not signals or not levels: return False
+        levels_set = set(levels)
+        return any(
+            (s.get("severity") in levels_set) if isinstance(s, dict) else False
+            for s in signals
+        )
+
+    @staticmethod
     def _deep_wrap(value):
         class AttrDict(dict):
             def __getattr__(self, item):
@@ -42,7 +74,13 @@ class EscalationValidator:
         triggers_fired = []
 
         functions = {
-            "contains_any": self._contains_any
+            "contains_any": self._contains_any,
+            "sum_crew_hours": self._sum_crew_hours,
+            "any_stale": self._any_stale,
+            "count_failed_attempts": self._count_failed_attempts,
+            "signals_match_keywords": self._signals_match_keywords,
+            "any_severity": self._any_severity,
+            "len": len,
         }
 
         names = {

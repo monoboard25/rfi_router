@@ -24,10 +24,10 @@ This is brittle: rules that look enforced are dead code, and audit logs claim es
 | Agent | Trigger ID | Current expression refs | Schema reality | Category | Proposed fix |
 |---|---|---|---|---|---|
 | rfi_router | `rfi_unclassifiable_trade` | `output.classification.trade` | ✅ in schema | — | **Resolved 2026-05-04** |
-| rfi_router | `rfi_no_response_48h` | `output.status`, `output.days_open` | `tracking_row.status` exists; `days_open` absent | A + C | Rewrite to `output.tracking_row.status`; add `tracking_row.days_open` (computed at agent runtime from `received_at`) |
-| daily_report | `daily_missing_photos` | `output.logged_crew_hours`, `output.photo_count` | `crew_hours[].hours`, `field_evidence[]` | B | Helper `sum_crew_hours(output.crew_hours) > 0 AND len(output.field_evidence) == 0` |
-| daily_report | `daily_safety_keywords` | `output.notes` | `narrative.summary`, `narrative.roadblocks` | A | `contains_any(output.narrative.summary, SAFETY_KEYWORDS) OR contains_any(output.narrative.roadblocks, SAFETY_KEYWORDS)` |
-| change_order | `co_amount_threshold` | `output.amount`, `output.contract_value` | `financials.amount`, `financials.contract_value` | A | `output.financials.amount > 25000 OR output.financials.amount > (output.financials.contract_value * 0.05)` |
+| rfi_router | `rfi_no_response_48h` | `output.tracking_row.status`, `output.tracking_row.days_open` | `tracking_row.status` exists; `tracking_row.days_open` still absent | A + C | **Path A resolved 2026-05-05** (expression repointed to `tracking_row.*`). C remainder: agent must populate `tracking_row.days_open` for rule to actually fire. |
+| daily_report | `daily_missing_photos` | `sum_crew_hours(output.crew_hours)`, `len(output.field_evidence)` | `crew_hours[].hours`, `field_evidence[]` | B | **Resolved 2026-05-05** (helpers `sum_crew_hours`, `len` added; matrix expression rewritten; unit test fires) |
+| daily_report | `daily_safety_keywords` | `output.narrative.summary`, `output.narrative.roadblocks` | both in schema | A | **Resolved 2026-05-05** (expression checks both narrative fields against SAFETY_KEYWORDS; unit test fires) |
+| change_order | `co_amount_threshold` | `output.financials.amount`, `output.financials.contract_value` | both in schema | A | **Resolved 2026-05-05** (expression repointed to `financials.*`; existing `test_escalation_validator` updated to new shape) |
 | change_order | `co_new_scope` | `output.is_new_scope` | absent; `financials.reason_code` exists | B or C | B: derive from `output.financials.reason_code == 'unforeseen_condition'` (decision needed: is reason_code the right proxy?). C if Principal Owners want explicit boolean. |
 | change_order | `co_over_contingency` | `output.current_spend`, `output.budget_contingency` | absent | C | Add `financials.current_spend`, `financials.budget_contingency` to schema **and** to the change_order agent's output extraction logic |
 | safety_monitor | `safety_critical_incident` | `output.incident_text` | `safety_signals[].observation`, `safety_signals[].severity` | B | Helper `signals_match_keywords(output.safety_signals, SAFETY_KEYWORDS)` OR severity-based: `any_severity(output.safety_signals, ['high', 'critical'])` — **decide: keyword match vs severity-driven** |
@@ -40,9 +40,9 @@ This is brittle: rules that look enforced are dead code, and audit logs claim es
 | ceo_agent | `ceo_safety_trigger_change` | `output.recommendation_type`, `output.target_agent` | TBD | C | Same as above |
 | ceo_agent | `ceo_insufficient_data` | `output.days_of_logs_available`, `output.has_log_gap` | TBD | C | Same as above |
 | ceo_agent | `ceo_agent_disagreement` | `output.event_type` | TBD | C | Same as above |
-| all (general) | `general_stale_data` | `output.source_artifact_age_days`, `output.freshness_threshold_days` | `sources_cited[].freshness_ok` exists (boolean) | B | Rewrite to `any_stale(output.sources_cited)` helper checking `freshness_ok == false` |
+| all (general) | `general_stale_data` | `any_stale(output.sources_cited)` | `sources_cited[].freshness_ok` exists | B | **Resolved 2026-05-05** (helper `any_stale` added; matrix rewritten; unit test fires) |
 | all (general) | `general_conflicting_sources` | `output.has_conflicting_sources` | absent | C | Add boolean OR derive from agent during retrieval phase |
-| all (general) | `general_tool_failure` | `output.tool_failure_count` | `resolution_path_attempts[].outcome` exists | B | Helper `count_failed_attempts(output.resolution_path_attempts) > 1` |
+| all (general) | `general_tool_failure` | `count_failed_attempts(output.resolution_path_attempts) > 1` | `resolution_path_attempts[].outcome` exists | B | **Resolved 2026-05-05** (helper `count_failed_attempts` added; matrix rewritten; unit test fires) |
 
 ## Summary by agent
 
@@ -54,19 +54,21 @@ This is brittle: rules that look enforced are dead code, and audit logs claim es
 - **ceo_agent:** 0 of 4 aligned. **Blocked on whether CEO schema exists at all.**
 - **general (all):** 0 of 3 aligned. 2 derivable, 1 schema gap.
 
-**Total:** 17 of 20 escalation rules currently dead. 1 fixed. Remaining 16: ~6 are path-only or simple derivations; ~10 require schema changes or human decisions.
+**Total (2026-05-05):** 7 of 20 escalation rules now active (up from 1). 13 still pending — split between human decisions (D1–D7 in `monoboard_drift_decisions.md`) and downstream schema/agent work.
 
-## Required helpers (if Category B fixes adopted)
+Closed this iteration: `rfi_unclassifiable_trade`, `rfi_no_response_48h` (path A only — C remainder noted), `daily_missing_photos`, `daily_safety_keywords`, `co_amount_threshold`, `general_stale_data`, `general_tool_failure`.
 
-To support the proposed expressions, the escalation validator's `functions` dict needs:
+## Required helpers (Category B)
 
-- `sum_crew_hours(crew_hours)` → `sum(h.hours for h in crew_hours)`
-- `any_severity(signals, levels)` → `any(s.severity in levels for s in signals)`
-- `signals_match_keywords(signals, keywords)` → checks all `observation` strings
-- `any_stale(sources_cited)` → `any(s.freshness_ok == false for s in sources_cited)`
-- `count_failed_attempts(attempts)` → `sum(1 for a in attempts if a.outcome == 'fail')`
+**Status:** all five helpers landed 2026-05-05 in `validator/src/validators/escalation_validator.py`. Available to any matrix expression:
 
-These belong in `validator/src/validators/escalation_validator.py` — registered alongside the existing `contains_any`.
+- `sum_crew_hours(crew_hours)` ✅
+- `any_severity(signals, levels)` ✅ (not yet used pending D3/D4)
+- `signals_match_keywords(signals, keywords)` ✅ (not yet used pending D3)
+- `any_stale(sources_cited)` ✅ (in use)
+- `count_failed_attempts(attempts)` ✅ (in use)
+
+`len()` also registered (used by `daily_missing_photos`).
 
 ## Decision queue (human)
 

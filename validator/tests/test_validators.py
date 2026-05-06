@@ -53,21 +53,77 @@ def test_scope_validator_teams_deeplink_registry(mock_fetch):
 def test_escalation_validator(mock_fetch):
     validator = EscalationValidator()
     # Change order > 25000 should escalate
-    output = {"amount": 30000, "contract_value": 100000}
+    output = {"financials": {"amount": 30000, "contract_value": 100000}}
     res = validator.validate("change_order", output)
     assert res["pass"] is False
-    assert len(res["triggers_fired"]) > 0
-    assert res["triggers_fired"][0]["trigger_id"] == "co_amount_threshold"
-    assert res["triggers_fired"][0]["halts_write"] is True
+    triggers = [t["trigger_id"] for t in res["triggers_fired"]]
+    assert "co_amount_threshold" in triggers
+    co_trigger = next(t for t in res["triggers_fired"] if t["trigger_id"] == "co_amount_threshold")
+    assert co_trigger["halts_write"] is True
 
 @patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
 def test_escalation_validator_pass(mock_fetch):
     validator = EscalationValidator()
-    # Change order under thresholds
-    output = {"amount": 10000, "contract_value": 500000, "is_new_scope": False, "current_spend": 10000, "budget_contingency": 50000, "source_artifact_age_days": 1, "freshness_threshold_days": 7}
+    # Change order under thresholds; sources fresh; no failed attempts
+    output = {
+        "financials": {"amount": 10000, "contract_value": 500000},
+        "sources_cited": [{"freshness_ok": True}],
+        "resolution_path_attempts": [{"outcome": "success"}],
+    }
     res = validator.validate("change_order", output)
-    print("DEBUG:", res)
     assert res["pass"] is True
+
+
+@patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
+def test_escalation_general_stale_data_fires(mock_fetch):
+    validator = EscalationValidator()
+    output = {"sources_cited": [{"freshness_ok": True}, {"freshness_ok": False}]}
+    res = validator.validate("rfi_router", output)
+    assert res["pass"] is False
+    assert any(t["trigger_id"] == "general_stale_data" for t in res["triggers_fired"])
+
+
+@patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
+def test_escalation_general_tool_failure_fires(mock_fetch):
+    validator = EscalationValidator()
+    output = {"resolution_path_attempts": [
+        {"outcome": "fail"}, {"outcome": "fail"}, {"outcome": "success"}
+    ]}
+    res = validator.validate("rfi_router", output)
+    assert res["pass"] is False
+    assert any(t["trigger_id"] == "general_tool_failure" for t in res["triggers_fired"])
+
+
+@patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
+def test_escalation_daily_missing_photos_fires(mock_fetch):
+    validator = EscalationValidator()
+    output = {
+        "crew_hours": [{"trade": "elec", "hours": 8, "count": 2}],
+        "field_evidence": [],
+    }
+    res = validator.validate("daily_report", output)
+    assert any(t["trigger_id"] == "daily_missing_photos" for t in res["triggers_fired"])
+
+
+@patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
+def test_escalation_daily_safety_keywords_fires(mock_fetch):
+    validator = EscalationValidator()
+    output = {"narrative": {"summary": "Worker fall from scaffold reported", "roadblocks": ""}}
+    res = validator.validate("daily_report", output)
+    assert any(t["trigger_id"] == "daily_safety_keywords" for t in res["triggers_fired"])
+
+
+@patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
+def test_escalation_helpers_direct(mock_fetch):
+    v = EscalationValidator()
+    assert v._sum_crew_hours([{"hours": 8}, {"hours": 4}]) == 12
+    assert v._any_stale([{"freshness_ok": True}, {"freshness_ok": False}]) is True
+    assert v._any_stale([{"freshness_ok": True}]) is False
+    assert v._count_failed_attempts([{"outcome": "fail"}, {"outcome": "success"}]) == 1
+    assert v._signals_match_keywords([{"observation": "Worker fall from scaffold"}], ["fall"]) is True
+    assert v._signals_match_keywords([{"observation": "PPE missing"}], ["fall"]) is False
+    assert v._any_severity([{"severity": "high"}], ["high", "critical"]) is True
+    assert v._any_severity([{"severity": "low"}], ["high", "critical"]) is False
 
 def test_schema_validator():
     validator = SchemaValidator()
