@@ -77,7 +77,13 @@ jobs:
         working-directory: ${{ env.FUNCTION_DIR }}
         run: |
           python -m pip install --upgrade pip
-          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
+          pip install --target=".python_packages/lib/site-packages" \
+            --platform manylinux2014_x86_64 \
+            --only-binary=:all: \
+            --implementation cp \
+            --python-version ${{ env.PYTHON_VERSION }} \
+            --upgrade \
+            -r requirements.txt
 
       - name: Login to Azure
         uses: azure/login@v2

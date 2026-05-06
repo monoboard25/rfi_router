@@ -40,3 +40,32 @@ def test_run_bid_assist_empty(mock_analyze, mock_validator):
     
     assert result["outcome"] == "insufficient_data"
     assert len(result["writes_proposed"]) == 0
+
+@patch('src.agent.ValidatorClient.validate')
+@patch('src.agent.AIProjectClient')
+@patch('src.agent.DefaultAzureCredential')
+def test_generate_takeoff_checklist_success(mock_cred, mock_client_class, mock_validator):
+    # Setup mocks
+    mock_validator.return_value = {"pass": True, "results": {}}
+    mock_project_client = MagicMock()
+    mock_client_class.return_value = mock_project_client
+    
+    mock_agent = MagicMock()
+    mock_agent.name = "test-agent"
+    mock_project_client.agents.create_version.return_value = mock_agent
+    
+    mock_openai_client = MagicMock()
+    mock_project_client.get_openai_client.return_value = mock_openai_client
+    
+    mock_response = MagicMock()
+    mock_response.output_text = '{"takeoff_checklist": [{"item_name": "Test Item", "category": "Test", "estimated_quantity": 10.0}], "historical_insights": []}'
+    mock_openai_client.responses.create.return_value = mock_response
+    
+    with patch.dict('os.environ', {
+        'AZURE_AI_PROJECT_ENDPOINT': 'https://test.endpoint',
+        'AZURE_OPENAI_DEPLOYMENT': 'test-deployment'
+    }):
+        result = run_bid_assist_agent({"bid_text": "Test bid content"})
+        
+    assert result["takeoff_checklist"][0]["item_name"] == "Test Item"
+    assert result["outcome"] == "completed_with_write"

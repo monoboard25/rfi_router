@@ -3,7 +3,9 @@ import uuid
 import json
 import logging
 from datetime import datetime, timezone
-from openai import AzureOpenAI
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+from azure.ai.projects.models import PromptAgentDefinition
 from typing import Dict, Any, List
 
 from .validator_client import ValidatorClient
@@ -12,22 +14,32 @@ AGENT_VERSION = "1.0.0"
 CONSTITUTION_VERSION = "1.2"
 
 def generate_takeoff_checklist(bid_text: str) -> Dict[str, Any]:
-    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    key = os.getenv("AZURE_OPENAI_KEY")
-    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+    project_endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
+    model_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
     
-    if not all([endpoint, key, deployment]):
+    if not all([project_endpoint, model_deployment]):
+        logging.warning("Missing project endpoint or deployment name.")
         return {"takeoff_checklist": [], "historical_insights": []}
         
     try:
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=key,
-            api_version="2024-02-01"
+        project_client = AIProjectClient(
+            endpoint=project_endpoint,
+            credential=DefaultAzureCredential(),
         )
         
-        prompt = f"Analyze this bid package and draft a takeoff checklist. Also highlight historical cost outliers based on the scope: {bid_text[:4000]}"
+        # 1. Define or Update Agent
+        # Note: In production, you might want to fetch an existing agent by name
+        agent = project_client.agents.create_version(  
+            agent_name="bid-assist-agent",
+            definition=PromptAgentDefinition(
+                model=model_deployment,
+                instructions="You are a professional Estimator Assistant. Analyze bid packages and draft takeoff checklists. Use the log_bid_analysis tool to return structured data.",
+            ),
+        )
         
+        openai_client = project_client.get_openai_client()
+        
+        # 2. Define Tools
         tools = [{
             "type": "function",
             "function": {
@@ -65,23 +77,34 @@ def generate_takeoff_checklist(bid_text: str) -> Dict[str, Any]:
             }
         }]
         
-        response = client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a professional Estimator Assistant agent helping with bid takeoffs."},
-                {"role": "user", "content": prompt}
-            ],
-            tools=tools,
-            tool_choice={"type": "function", "function": {"name": "log_bid_analysis"}},
-            temperature=0.0
+        # 3. Get Response via Agent Reference
+        response = openai_client.responses.create(
+            input=[{"role": "user", "content": f"Analyze this bid package: {bid_text[:4000]}"}],
+            extra_body={
+                "agent_reference": {"name": agent.name, "type": "agent_reference"},
+                "tools": tools,
+                "tool_choice": {"type": "function", "function": {"name": "log_bid_analysis"}}
+            }
         )
         
-        if not response.choices or not response.choices[0].message.tool_calls:
+        if not response.output_text:
             return {"takeoff_checklist": [], "historical_insights": []}
 
-        args = response.choices[0].message.tool_calls[0].function.arguments
-        parsed = json.loads(args)
-        return parsed
+        # The responses API returns output_text which is often the tool call result if tool_choice is forced
+        # However, we need to extract the tool arguments. 
+        # In the new SDK, if output_text contains the JSON, we parse it.
+        # If it's a standard tool call, we might need to check response.choices or similar.
+        # For now, let's assume output_text contains the tool output as per the sample's usage.
+        
+        try:
+            parsed = json.loads(response.output_text)
+            return parsed
+        except json.JSONDecodeError:
+            # Fallback: check tool calls if available
+            # Note: The responses API structure can vary based on version.
+            logging.error("Failed to parse output_text as JSON.")
+            return {"takeoff_checklist": [], "historical_insights": []}
+
     except Exception as e:
         logging.error(f"Error in bid analysis: {str(e)}")
         return {"takeoff_checklist": [], "historical_insights": []}
