@@ -70,6 +70,8 @@ These belong in `validator/src/validators/escalation_validator.py` — registere
 
 ## Decision queue (human)
 
+> Each decision is broken out with options and a recommended default in `monoboard_drift_decisions.md`. Owners initial that doc directly.
+
 1. **Change Order `co_new_scope`:** Use `reason_code == 'unforeseen_condition'` as proxy, or add explicit `is_new_scope` boolean? — Principal Owners + CFO
 2. **Change Order `co_over_contingency`:** Where do `current_spend` and `budget_contingency` come from at agent runtime? Project's accounting system, ERP, manual? — CFO/Controller
 3. **Safety Monitor `safety_critical_incident`:** Keyword scan over observations vs severity-driven? Constitution implies keyword (preserves OSHA-aligned terms), but severity is more deterministic. — Safety Officer
