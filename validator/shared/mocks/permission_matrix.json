@@ -170,6 +170,26 @@
     "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
   },
   {
+    "agent_id": "onboarding_agent",
+    "scope_id": "sp_project_site",
+    "access": "W",
+    "conditional": true,
+    "condition_notes": "Write limited to NEW project sites the onboarding agent provisions; cannot modify existing sites.",
+    "constitution_ref": "Pillar I — Onboarding Agent / SP Project Site (provisioning only)",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
+    "agent_id": "onboarding_agent",
+    "scope_id": "sp_intranet_agent_governance",
+    "access": "R",
+    "conditional": false,
+    "condition_notes": "Reads governance templates (permission matrix, escalation matrix, naming convention) to seed new sites.",
+    "constitution_ref": "Pillar I — Onboarding Agent / Governance template read",
+    "effective_date": "2026-05-03",
+    "approved_by": "Abdiel B. Escoto; Luis W. Delgado"
+  },
+  {
     "agent_id": "ceo_agent",
     "scope_id": "teams_agent_governance",
     "access": "W",

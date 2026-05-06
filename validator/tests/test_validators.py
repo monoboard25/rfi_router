@@ -30,11 +30,24 @@ def test_scope_validator(mock_fetch):
     proposed = [{"target_uri": "teams://acme-corp/project-2401", "write_type": "post"}]
     res = validator.validate("rfi_router", proposed)
     assert res["pass"] is True
-    
+
     proposed_bad = [{"target_uri": "https://acme.sharepoint.com/sites/Finance", "write_type": "post"}]
     res = validator.validate("rfi_router", proposed_bad)
     assert res["pass"] is False
     assert res["violations"][0]["access_granted"] == "None"
+
+
+@patch('graph_client.SharePointListFetcher.fetch_permission_matrix', return_value=[])
+def test_scope_validator_teams_deeplink_registry(mock_fetch):
+    validator = ScopeValidator()
+    deeplink = "https://teams.microsoft.com/l/channel/19%3Aproject-2401-electrical%40thread.tacv2"
+    res = validator.validate("rfi_router", [{"target_uri": deeplink, "write_type": "post"}])
+    assert res["pass"] is True
+
+    unknown = "https://teams.microsoft.com/l/channel/19%3Aunknown-channel%40thread.tacv2"
+    res = validator.validate("rfi_router", [{"target_uri": unknown, "write_type": "post"}])
+    assert res["pass"] is False
+    assert res["violations"][0]["reason"] == "URI does not match any known scope"
 
 @patch('graph_client.SharePointListFetcher.fetch_escalation_matrix', return_value=[])
 def test_escalation_validator(mock_fetch):

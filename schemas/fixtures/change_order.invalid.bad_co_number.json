@@ -1,0 +1,43 @@
+{
+  "run_id": "c3d4e5f6-a7b8-4901-c2d3-e4f5a6b7c8d9",
+  "agent_id": "change_order",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "change_order": {
+    "filename": "2401-CO-BAD.pdf",
+    "filename_conforms": false,
+    "job_number": "2401",
+    "co_number": "CO-X",
+    "type_code": "CO",
+    "description_slug": "Bad",
+    "version": 1,
+    "source_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/COs/2401-CO-BAD.pdf",
+    "received_at": "2026-05-03T15:30:00Z",
+    "payload_hash": "sha256:b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5"
+  },
+
+  "financials": {
+    "amount": 0,
+    "contract_value": 850000,
+    "schedule_impact_days": 0,
+    "reason_code": "client_request"
+  },
+
+  "routing": {
+    "assigned_to_role": "@PM",
+    "target_channel_uri": "https://teams.microsoft.com/l/channel/19%3Aproject-2401-finance%40thread.tacv2",
+    "target_scope": "teams_finance_channel",
+    "routing_basis": "test invalid",
+    "escalation_triggered": false
+  },
+
+  "resolution_path": "deterministic_tool",
+  "resolution_path_attempts": [
+    { "step": "deterministic_tool", "outcome": "success", "failure_reason": null }
+  ],
+  "sources_cited": [],
+  "writes_proposed": [],
+  "escalations_fired": [],
+  "outcome": "halted_validation"
+}

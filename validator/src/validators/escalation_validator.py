@@ -1,6 +1,6 @@
 import os
 import json
-from simpleeval import simple_eval
+from simpleeval import EvalWithCompoundTypes, NameNotDefined, AttributeDoesNotExist
 
 from graph_client import SharePointListFetcher
 
@@ -26,13 +26,25 @@ class EscalationValidator:
         text_lower = text.lower()
         return any(kw.lower() in text_lower for kw in keywords)
 
+    @staticmethod
+    def _deep_wrap(value):
+        class AttrDict(dict):
+            def __getattr__(self, item):
+                if item in self: return self[item]
+                return None
+        if isinstance(value, dict):
+            return AttrDict({k: EscalationValidator._deep_wrap(v) for k, v in value.items()})
+        if isinstance(value, list):
+            return [EscalationValidator._deep_wrap(v) for v in value]
+        return value
+
     def validate(self, agent_id: str, output: dict) -> dict:
         triggers_fired = []
-        
+
         functions = {
             "contains_any": self._contains_any
         }
-        
+
         names = {
             "output": output,
             "SAFETY_KEYWORDS": ["fatality", "fall", "struck-by", "electrocution", "caught-in", "hospitalization"]
@@ -40,25 +52,26 @@ class EscalationValidator:
 
         rules = [r for r in self.escalation_matrix if r.get("agent_id") in [agent_id, "all"]]
         pass_validation = True
-        
+
         for rule in rules:
             expr = rule.get("condition_expression", "False")
-            
+
             # Preprocess DSL to Python-compatible syntax
-            expr_python = expr.replace(" OR ", " or ").replace(" AND ", " and ")
-            
+            expr_python = (
+                expr.replace(" OR ", " or ")
+                    .replace(" AND ", " and ")
+                    .replace("== null", "== None")
+                    .replace("!= null", "!= None")
+            )
+
             try:
-                class AttrDict(dict):
-                    def __getattr__(self, item):
-                        if item in self: return self[item]
-                        return None
-                        
-                wrapped_output = AttrDict(output)
-                names["output"] = wrapped_output
+                names["output"] = self._deep_wrap(output)
                 names["true"] = True
                 names["false"] = False
+                names["null"] = None
                 
-                matched = simple_eval(expr_python, names=names, functions=functions)
+                evaluator = EvalWithCompoundTypes(names=names, functions=functions)
+                matched = evaluator.eval(expr_python)
                 
                 if matched:
                     halts_write = rule.get("halts_write", False)
@@ -73,7 +86,8 @@ class EscalationValidator:
                         
             except Exception as e:
                 # Missing attributes resolve to None. E.g., None > 1 raises TypeError.
-                if isinstance(e, (KeyError, AttributeError, NameError, TypeError)):
+                from simpleeval import InvalidExpression
+                if isinstance(e, (KeyError, AttributeError, NameError, TypeError, NameNotDefined, AttributeDoesNotExist, InvalidExpression)):
                     continue
                     
                 triggers_fired.append({

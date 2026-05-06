@@ -1,0 +1,20 @@
+{
+  "run_id": "e1f2a3b4-c5d6-4789-e0f1-a2b3c4d5e6f7",
+  "agent_id": "onboarding_agent",
+
+  "proposed_permission_matrix": {
+    "job_number": "2509",
+    "site_id": "project-2509"
+  },
+
+  "proposed_folders": [],
+
+  "proposed_escalation_matrix": {
+    "job_number": "2509",
+    "triggers": []
+  },
+
+  "resolution_path": "template",
+  "writes_proposed": [],
+  "outcome": "completed_with_write"
+}

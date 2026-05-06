@@ -1,0 +1,19 @@
+{
+  "run_id": "a7b8c9d0-e1f2-4345-a6b7-c8d9e0f1a2b3",
+  "agent_id": "safety_monitor",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "safety_signals": [
+    {
+      "signal_type": "PPE_VIOLATION",
+      "observation": "Bad severity test",
+      "severity": "extreme",
+      "source_evidence_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Photos/2026-05-03/IMG_0101.jpg"
+    }
+  ],
+
+  "resolution_path": "inference",
+  "writes_proposed": [],
+  "outcome": "completed_with_write"
+}

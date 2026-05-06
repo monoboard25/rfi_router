@@ -2,7 +2,7 @@
   {
     "agent_id": "rfi_router",
     "trigger_id": "rfi_unclassifiable_trade",
-    "condition_expression": "output.trade == null OR output.trade == 'unknown'",
+    "condition_expression": "output.classification.trade == null OR output.classification.trade == 'unclassifiable'",
     "destination": "Teams \u2192 Project Channel \u2192 @PM",
     "halts_write": true,
     "agent_action": "Hold routing; file is not moved",

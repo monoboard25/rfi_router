@@ -1,0 +1,11 @@
+{
+  "run_id": "c9d0e1f2-a3b4-4567-c8d9-e0f1a2b3c4d5",
+  "agent_id": "bid_assist",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "takeoff_checklist": [],
+  "historical_insights": [],
+  "resolution_path": "retrieval",
+  "writes_proposed": []
+}

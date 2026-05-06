@@ -1,0 +1,43 @@
+{
+  "run_id": "b8c9d0e1-f2a3-4456-b7c8-d9e0f1a2b3c4",
+  "agent_id": "bid_assist",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "takeoff_checklist": [
+    {
+      "item_name": "3/4-inch copper pipe",
+      "category": "plumbing",
+      "estimated_quantity": 420,
+      "unit": "linear_feet"
+    },
+    {
+      "item_name": "20A duplex receptacle",
+      "category": "electrical",
+      "estimated_quantity": 64,
+      "unit": "each"
+    }
+  ],
+
+  "historical_insights": [
+    {
+      "observation": "Similar mid-rise bids in 2024 averaged 18% higher copper pipe waste than the takeoff suggests",
+      "impact_rating": "medium"
+    }
+  ],
+
+  "resolution_path": "retrieval",
+
+  "writes_proposed": [
+    {
+      "target_scope": "teams_estimating",
+      "target_uri": "teams://monoboard/estimating/Drafts",
+      "write_type": "file_create",
+      "content_summary": "Draft takeoff checklist for bid 2509-Westside"
+    }
+  ],
+
+  "escalations_fired": [],
+
+  "outcome": "completed_with_write"
+}

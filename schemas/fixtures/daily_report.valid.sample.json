@@ -1,0 +1,53 @@
+{
+  "run_id": "d4e5f6a7-b8c9-4012-d3e4-f5a6b7c8d9e0",
+  "agent_id": "daily_report",
+  "agent_version": "1.0.0",
+  "constitution_version": "1.2",
+
+  "report_metadata": {
+    "job_number": "2401",
+    "report_date": "2026-05-03",
+    "weather_summary": "Clear, 72°F, 8mph wind"
+  },
+
+  "crew_hours": [
+    { "trade": "electrical", "hours": 32, "count": 4 },
+    { "trade": "plumbing", "hours": 24, "count": 3 }
+  ],
+
+  "field_evidence": [
+    {
+      "uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Photos/2026-05-03/IMG_0042.jpg",
+      "caption": "East wall electrical rough-in complete"
+    }
+  ],
+
+  "narrative": {
+    "summary": "Electrical rough-in finished on east wall. Plumbing fixtures staged for tomorrow.",
+    "roadblocks": "None reported."
+  },
+
+  "resolution_path": "deterministic_tool",
+
+  "resolution_path_attempts": [
+    { "step": "deterministic_tool", "outcome": "success" }
+  ],
+
+  "sources_cited": [
+    { "type": "sp_file", "uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Photos/2026-05-03/" }
+  ],
+
+  "writes_proposed": [
+    {
+      "target_scope": "sp_reports_library",
+      "target_uri": "https://monoboard.sharepoint.com/sites/project-2401/Shared%20Documents/Reports/",
+      "write_type": "file_create",
+      "proposed_filename": "2401-RPT-DailyReport-20260503-v1.pdf",
+      "content_summary": "Daily report for 2026-05-03"
+    }
+  ],
+
+  "escalations_fired": [],
+
+  "outcome": "completed_with_write"
+}
