@@ -5,12 +5,27 @@ import logging
 
 class SchemaValidator:
     def __init__(self, schemas_dir: str = None):
-        if schemas_dir is None:
-            # Default to ../../schemas relative to this file
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            self.schemas_dir = os.path.join(os.path.dirname(base_dir), "schemas")
-        else:
+        if schemas_dir is not None:
             self.schemas_dir = schemas_dir
+            return
+
+        env_dir = os.getenv("SCHEMAS_DIR")
+        if env_dir:
+            self.schemas_dir = env_dir
+            return
+
+        # Try (in order): <validator>/schemas (deployed layout),
+        # <repo>/schemas (local dev layout).
+        validator_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        candidates = [
+            os.path.join(validator_dir, "schemas"),
+            os.path.join(os.path.dirname(validator_dir), "schemas"),
+        ]
+        for c in candidates:
+            if os.path.isdir(c):
+                self.schemas_dir = c
+                return
+        self.schemas_dir = candidates[0]
             
     def validate(self, agent_id: str, output: dict) -> dict:
         schema_path = os.path.join(self.schemas_dir, f"{agent_id}.schema.json")

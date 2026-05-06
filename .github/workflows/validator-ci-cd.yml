@@ -69,6 +69,11 @@ jobs:
         with:
           version: "latest"
 
+      - name: Bundle Schemas Into Package
+        run: |
+          rm -rf ${{ env.FUNCTION_DIR }}/schemas
+          cp -r schemas ${{ env.FUNCTION_DIR }}/schemas
+
       - name: Resolve Project Dependencies
         working-directory: ${{ env.FUNCTION_DIR }}
         run: uv export --format requirements-txt --no-hashes > requirements.txt
