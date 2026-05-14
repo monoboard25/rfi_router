@@ -51,7 +51,9 @@ def test_generate_takeoff_checklist_success(mock_cred, mock_client_class, mock_v
     mock_client_class.return_value = mock_project_client
     
     mock_agent = MagicMock()
+    mock_agent.id = "test-agent-id"
     mock_agent.name = "test-agent"
+    mock_project_client.agents.get_agent.return_value = mock_agent
     mock_project_client.agents.create_version.return_value = mock_agent
     
     mock_openai_client = MagicMock()
@@ -63,7 +65,8 @@ def test_generate_takeoff_checklist_success(mock_cred, mock_client_class, mock_v
     
     with patch.dict('os.environ', {
         'AZURE_AI_PROJECT_ENDPOINT': 'https://test.endpoint',
-        'AZURE_OPENAI_DEPLOYMENT': 'test-deployment'
+        'AZURE_OPENAI_DEPLOYMENT': 'test-deployment',
+        'AZURE_AI_AGENT_ID': 'test-agent-id'
     }):
         result = run_bid_assist_agent({"bid_text": "Test bid content"})
         

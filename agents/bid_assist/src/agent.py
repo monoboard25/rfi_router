@@ -27,15 +27,28 @@ def generate_takeoff_checklist(bid_text: str) -> Dict[str, Any]:
             credential=DefaultAzureCredential(),
         )
         
-        # 1. Define or Update Agent
-        # Note: In production, you might want to fetch an existing agent by name
-        agent = project_client.agents.create_version(  
-            agent_name="bid-assist-agent",
-            definition=PromptAgentDefinition(
-                model=model_deployment,
-                instructions="You are a professional Estimator Assistant. Analyze bid packages and draft takeoff checklists. Use the log_bid_analysis tool to return structured data.",
-            ),
-        )
+        # 1. Fetch or Create Agent
+        agent_id = os.getenv("AZURE_AI_AGENT_ID")
+        
+        if agent_id:
+            try:
+                agent = project_client.agents.get_agent(agent_id)
+                logging.info(f"Retrieved persistent agent: {agent.id}")
+            except Exception as e:
+                logging.warning(f"Could not retrieve agent {agent_id}: {e}")
+                agent = None
+        else:
+            agent = None
+
+        if not agent:
+            logging.info("Creating or updating agent version.")
+            agent = project_client.agents.create_version(  
+                agent_name="bid-assist-agent",
+                definition=PromptAgentDefinition(
+                    model=model_deployment,
+                    instructions="You are a professional Estimator Assistant. Analyze bid packages and draft takeoff checklists. Use the log_bid_analysis tool to return structured data.",
+                ),
+            )
         
         openai_client = project_client.get_openai_client()
         
