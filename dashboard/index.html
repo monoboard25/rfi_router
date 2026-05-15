@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monoboard — Agent Log Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    header {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.05em; }
+
+    #user-info { font-size: 12px; color: #aaa; }
+
+    #logout-btn {
+      background: none;
+      border: 1px solid #555;
+      color: #ccc;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 12px;
+    }
+
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      gap: 16px;
+    }
+
+    #login-btn {
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    main { padding: 20px 24px; }
+
+    #filters {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      background: #fff;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    input[type="date"], select {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    #fetch-btn {
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    #fetch-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    #error-banner {
+      display: none;
+      background: #fdecea;
+      border: 1px solid #f5c6c2;
+      color: #c0392b;
+      padding: 10px 16px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    #error-banner button {
+      margin-left: 12px;
+      background: none;
+      border: 1px solid #c0392b;
+      color: #c0392b;
+      padding: 2px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    #status-line {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+
+    table { border-collapse: collapse; width: 100%; min-width: 900px; }
+
+    thead { background: #f0f0f0; }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #444;
+      border-bottom: 1px solid #ddd;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr.status-pass { background: #fff; }
+    tr.status-fail { background: #fff5f5; }
+    tr.status-escalated { background: #fffbea; border-left: 3px solid #f39c12; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-pass { background: #e6f4ea; color: #1e7e34; }
+    .badge-fail { background: #fdecea; color: #c0392b; }
+    .badge-escalated { background: #fff3cd; color: #856404; }
+    .badge-none { background: #f0f0f0; color: #888; }
+
+    #pagination {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    #pagination button {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 5px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    #pagination button:disabled { color: #aaa; cursor: not-allowed; background: #f5f5f5; }
+
+    #empty-state {
+      display: none;
+      padding: 40px;
+      text-align: center;
+      color: #888;
+    }
+
+    #loading { display: none; padding: 16px; text-align: center; color: #666; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MONOBOARD / Agent Log Viewer</h1>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="user-info"></span>
+    <button id="logout-btn" style="display:none" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<div id="login-screen">
+  <p style="color:#555">Sign in with your Monoboard Entra ID account to continue.</p>
+  <button id="login-btn" onclick="login()">Sign in with Microsoft</button>
+</div>
+
+<main id="app" style="display:none">
+  <div id="filters">
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="filter-from" />
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" id="filter-to" />
+    </div>
+    <div class="filter-group">
+      <label>Status</label>
+      <select id="filter-status">
+        <option value="">All</option>
+        <option value="pass">Pass</option>
+        <option value="fail">Fail</option>
+        <option value="escalated">Escalated</option>
+      </select>
+    </div>
+    <button id="fetch-btn" onclick="fetchRuns(true)">Load runs</button>
+  </div>
+
+  <div id="error-banner">
+    <span id="error-msg"></span>
+    <button onclick="fetchRuns(true)">Retry</button>
+    <button onclick="document.getElementById('error-banner').style.display='none'">Dismiss</button>
+  </div>
+
+  <div id="status-line"></div>
+  <div id="loading">Loading&hellip;</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Agent</th>
+          <th>Timestamp (UTC)</th>
+          <th>Status</th>
+          <th>Schema</th>
+          <th>Scope</th>
+          <th>Naming</th>
+          <th>Escalation</th>
+          <th>Target Site</th>
+          <th>Failure Reason</th>
+        </tr>
+      </thead>
+      <tbody id="runs-body"></tbody>
+    </table>
+    <div id="empty-state">No runs in this period.</div>
+  </div>
+
+  <div id="pagination">
+    <button id="prev-btn" disabled onclick="prevPage()">← Prev</button>
+    <span id="page-info"></span>
+    <button id="next-btn" disabled onclick="nextPage()">Next →</button>
+  </div>
+</main>
+
+<script src="https://alcdn.msauth.net/browser/3.4.0/js/msal-browser.min.js"></script>
+<script src="/config.js"></script>
+<script>
+  const cfg = window.MONOBOARD_CONFIG;
+
+  const msalApp = new msal.PublicClientApplication({
+    auth: {
+      clientId: cfg.clientId,
+      authority: `https://login.microsoftonline.com/${cfg.tenantId}`,
+      redirectUri: `${location.origin}/auth-callback`
+    },
+    cache: { cacheLocation: "sessionStorage" }
+  });
+
+  // Pagination state
+  let pageStack = [null]; // stack of continuation tokens; index 0 = first page (no token)
+  let currentPageIdx = 0;
+
+  async function init() {
+    await msalApp.initialize();
+    const resp = await msalApp.handleRedirectPromise();
+    const account = resp?.account ?? msalApp.getAllAccounts()[0] ?? null;
+
+    if (account) {
+      showApp(account);
+    } else {
+      document.getElementById("login-screen").style.display = "flex";
+    }
+  }
+
+  async function login() {
+    await msalApp.loginRedirect({
+      scopes: [`api://${cfg.clientId}/runs.read`]
+    });
+  }
+
+  async function logout() {
+    await msalApp.logoutRedirect();
+  }
+
+  function showApp(account) {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("user-info").textContent = account.username;
+    document.getElementById("logout-btn").style.display = "inline";
+
+    // Default date range: last 7 days
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - 7);
+    document.getElementById("filter-to").value = to.toISOString().slice(0, 10);
+    document.getElementById("filter-from").value = from.toISOString().slice(0, 10);
+  }
+
+  async function getToken() {
+    const account = msalApp.getAllAccounts()[0];
+    if (!account) throw new Error("Not signed in");
+    const result = await msalApp.acquireTokenSilent({
+      scopes: [`api://${cfg.clientId}/runs.read`],
+      account
+    }).catch(() => msalApp.acquireTokenRedirect({
+      scopes: [`api://${cfg.clientId}/runs.read`]
+    }));
+    return result?.accessToken;
+  }
+
+  async function fetchRuns(reset = false) {
+    if (reset) {
+      pageStack = [null];
+      currentPageIdx = 0;
+    }
+
+    const token = await getToken();
+    const fromVal = document.getElementById("filter-from").value;
+    const toVal = document.getElementById("filter-to").value;
+    const statusVal = document.getElementById("filter-status").value;
+    const contToken = pageStack[currentPageIdx];
+
+    const params = new URLSearchParams();
+    if (fromVal) params.set("from", fromVal);
+    if (toVal) params.set("to", toVal);
+    if (statusVal) params.set("status", statusVal);
+    if (contToken?.partitionKey) params.set("continuationPartitionKey", contToken.partitionKey);
+    if (contToken?.rowKey) params.set("continuationRowKey", contToken.rowKey);
+
+    showLoading(true);
+    hideError();
+
+    try {
+      const res = await fetch(`${cfg.apiBase}/runs?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+
+      const data = await res.json();
+      renderTable(data.runs);
+
+      // Update pagination state
+      if (data.continuationToken && currentPageIdx === pageStack.length - 1) {
+        pageStack.push(data.continuationToken);
+      }
+      updatePagination(data.runs.length, !!data.continuationToken);
+
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function prevPage() {
+    if (currentPageIdx > 0) {
+      currentPageIdx--;
+      fetchRuns(false);
+    }
+  }
+
+  function nextPage() {
+    if (currentPageIdx < pageStack.length - 1) {
+      currentPageIdx++;
+      fetchRuns(false);
+    }
+  }
+
+  function updatePagination(count, hasMore) {
+    document.getElementById("page-info").textContent =
+      `Page ${currentPageIdx + 1} · ${count} run${count !== 1 ? "s" : ""}`;
+    document.getElementById("prev-btn").disabled = currentPageIdx === 0;
+    document.getElementById("next-btn").disabled = !hasMore && currentPageIdx === pageStack.length - 1;
+  }
+
+  function renderTable(runs) {
+    const tbody = document.getElementById("runs-body");
+    const empty = document.getElementById("empty-state");
+    tbody.innerHTML = "";
+
+    if (!runs || runs.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+
+    empty.style.display = "none";
+
+    for (const r of runs) {
+      const tr = document.createElement("tr");
+      tr.className = `status-${r.status ?? "pass"}`;
+      tr.innerHTML = `
+        <td>${esc(r.agent_id ?? r.PartitionKey ?? "—")}</td>
+        <td>${esc(r.run_timestamp ?? "—")}</td>
+        <td>${badge(r.status)}</td>
+        <td>${badge(r.validator_schema)}</td>
+        <td>${badge(r.validator_scope)}</td>
+        <td>${badge(r.validator_naming)}</td>
+        <td>${badge(r.validator_escalation)}</td>
+        <td>${esc(r.target_site ?? "—")}</td>
+        <td style="max-width:260px;white-space:normal">${esc(r.failure_reason ?? "")}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function badge(val) {
+    if (!val || val === "null") return `<span class="badge badge-none">—</span>`;
+    const cls = { pass: "badge-pass", fail: "badge-fail", escalated: "badge-escalated", none: "badge-none" }[val] ?? "badge-none";
+    return `<span class="badge ${cls}">${esc(val)}</span>`;
+  }
+
+  function esc(s) {
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function showLoading(on) {
+    document.getElementById("loading").style.display = on ? "block" : "none";
+    document.getElementById("fetch-btn").disabled = on;
+  }
+
+  function showError(msg) {
+    document.getElementById("error-msg").textContent = msg;
+    document.getElementById("error-banner").style.display = "block";
+  }
+
+  function hideError() {
+    document.getElementById("error-banner").style.display = "none";
+  }
+
+  init();
+</script>
+</body>
+</html>

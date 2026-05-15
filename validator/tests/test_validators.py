@@ -53,7 +53,7 @@ def test_scope_validator_teams_deeplink_registry(mock_fetch):
 def test_escalation_validator(mock_fetch):
     validator = EscalationValidator()
     # Change order > 25000 should escalate
-    output = {"amount": 30000, "contract_value": 100000}
+    output = {"financials": {"amount": 30000, "contract_value": 100000}}
     res = validator.validate("change_order", output)
     assert res["pass"] is False
     assert len(res["triggers_fired"]) > 0
@@ -64,7 +64,7 @@ def test_escalation_validator(mock_fetch):
 def test_escalation_validator_pass(mock_fetch):
     validator = EscalationValidator()
     # Change order under thresholds
-    output = {"amount": 10000, "contract_value": 500000, "is_new_scope": False, "current_spend": 10000, "budget_contingency": 50000, "source_artifact_age_days": 1, "freshness_threshold_days": 7}
+    output = {"financials": {"amount": 10000, "contract_value": 500000}, "is_new_scope": False, "current_spend": 10000, "budget_contingency": 50000, "sources_cited": [{"freshness_ok": True}]}
     res = validator.validate("change_order", output)
     print("DEBUG:", res)
     assert res["pass"] is True

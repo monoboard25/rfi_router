@@ -26,6 +26,26 @@ class EscalationValidator:
         text_lower = text.lower()
         return any(kw.lower() in text_lower for kw in keywords)
 
+    def _sum_crew_hours(self, crew_hours):
+        if not crew_hours: return 0
+        return sum((h.hours or 0) for h in crew_hours)
+
+    def _any_severity(self, signals, levels):
+        if not signals: return False
+        return any(s.severity in levels for s in signals if s.severity)
+
+    def _signals_match_keywords(self, signals, keywords):
+        if not signals: return False
+        return any(self._contains_any(s.observation, keywords) for s in signals if s.observation)
+
+    def _any_stale(self, sources_cited):
+        if not sources_cited: return False
+        return any(s.freshness_ok is False for s in sources_cited)
+
+    def _count_failed_attempts(self, attempts):
+        if not attempts: return 0
+        return sum(1 for a in attempts if a.outcome == 'fail')
+
     @staticmethod
     def _deep_wrap(value):
         class AttrDict(dict):
@@ -42,7 +62,12 @@ class EscalationValidator:
         triggers_fired = []
 
         functions = {
-            "contains_any": self._contains_any
+            "contains_any": self._contains_any,
+            "sum_crew_hours": self._sum_crew_hours,
+            "any_severity": self._any_severity,
+            "signals_match_keywords": self._signals_match_keywords,
+            "any_stale": self._any_stale,
+            "count_failed_attempts": self._count_failed_attempts
         }
 
         names = {

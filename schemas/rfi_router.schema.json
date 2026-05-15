@@ -319,6 +319,11 @@
           "format": "date-time"
         },
 
+        "days_open": {
+          "type": ["integer", "null"],
+          "description": "Number of days since received_at."
+        },
+
         "sla_deadline": {
           "type": ["string", "null"],
           "format": "date-time"
