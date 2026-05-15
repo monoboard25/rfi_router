@@ -4,16 +4,13 @@ import logging
 
 class ValidatorClient:
     def __init__(self):
-        self.api_url = os.getenv("VALIDATOR_API_URL", "http://localhost:7071/api/validate")
+        self.api_url = os.getenv("GOVERNANCE_AGENT_URL", "http://localhost:3000/validate")
         
-    def validate(self, run_id: str, agent_id: str, agent_version: str, output: dict, proposed_writes: list, proposed_filenames: list) -> dict:
+    def validate(self, agent_name: str, prompt: str, response_text: str) -> dict:
         payload = {
-            "run_id": run_id,
-            "agent_id": agent_id,
-            "agent_version": agent_version,
-            "output": output,
-            "proposed_writes": proposed_writes,
-            "proposed_filenames": proposed_filenames
+            "agentName": agent_name,
+            "prompt": prompt,
+            "response": response_text
         }
         
         try:
@@ -21,8 +18,8 @@ class ValidatorClient:
             if response.status_code == 200:
                 return response.json()
             else:
-                logging.error(f"Validator API returned HTTP {response.status_code}")
-                return {"pass": False, "first_failure": "http_error", "results": {}}
+                logging.error(f"Governance Agent returned HTTP {response.status_code}")
+                return {"isValid": False, "violations": ["http_error"], "score": 0}
         except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to reach Validator Chain at {self.api_url}: {str(e)}")
-            return {"pass": False, "first_failure": "unreachable", "results": {}}
+            logging.error(f"Failed to reach Governance Agent at {self.api_url}: {str(e)}")
+            return {"isValid": False, "violations": ["unreachable"], "score": 0}
