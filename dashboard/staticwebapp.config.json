@@ -7,3 +7,4 @@
     "content-security-policy": "default-src 'self' https://login.microsoftonline.com https://alcdn.msauth.net; script-src 'self' 'unsafe-inline' https://alcdn.msauth.net; style-src 'self' 'unsafe-inline'"
   }
 }
+
