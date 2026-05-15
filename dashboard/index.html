@@ -212,6 +212,7 @@
 <div id="login-screen">
   <p style="color:#555">Sign in with your Monoboard Entra ID account to continue.</p>
   <button id="login-btn" onclick="login()">Sign in with Microsoft</button>
+  <p id="login-error" style="display:none;color:#c0392b;font-size:13px;max-width:420px;text-align:center;margin-top:8px;"></p>
 </div>
 
 <main id="app" style="display:none">
@@ -291,21 +292,33 @@
   let currentPageIdx = 0;
 
   async function init() {
-    await msalApp.initialize();
-    const resp = await msalApp.handleRedirectPromise();
-    const account = resp?.account ?? msalApp.getAllAccounts()[0] ?? null;
+    try {
+      await msalApp.initialize();
+      const resp = await msalApp.handleRedirectPromise();
+      const account = resp?.account ?? msalApp.getAllAccounts()[0] ?? null;
 
-    if (account) {
-      showApp(account);
-    } else {
+      if (account) {
+        showApp(account);
+      } else {
+        document.getElementById("login-screen").style.display = "flex";
+      }
+    } catch (err) {
       document.getElementById("login-screen").style.display = "flex";
+      document.getElementById("login-error").textContent = "Auth init error: " + err.message;
+      document.getElementById("login-error").style.display = "block";
     }
   }
 
   async function login() {
-    await msalApp.loginRedirect({
-      scopes: [`api://${cfg.clientId}/runs.read`]
-    });
+    document.getElementById("login-error").style.display = "none";
+    try {
+      await msalApp.loginRedirect({
+        scopes: [`api://${cfg.clientId}/runs.read`]
+      });
+    } catch (err) {
+      document.getElementById("login-error").textContent = "Login error: " + err.message;
+      document.getElementById("login-error").style.display = "block";
+    }
   }
 
   async function logout() {
