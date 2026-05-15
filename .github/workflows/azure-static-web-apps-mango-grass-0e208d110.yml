@@ -6,14 +6,14 @@ on:
       - main
     paths:
       - 'dashboard/**'
-      - '.github/workflows/dashboard-ci-cd.yml'
+      - '.github/workflows/azure-static-web-apps-mango-grass-0e208d110.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
     paths:
       - 'dashboard/**'
-      - '.github/workflows/dashboard-ci-cd.yml'
+      - '.github/workflows/azure-static-web-apps-mango-grass-0e208d110.yml'
 
 jobs:
   build_and_deploy_job:

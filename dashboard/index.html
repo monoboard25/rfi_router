@@ -276,23 +276,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
 <script src="/config.js"></script>
 <script>
-  const cfg = window.MONOBOARD_CONFIG;
-
-  const msalApp = new msal.PublicClientApplication({
-    auth: {
-      clientId: cfg.clientId,
-      authority: `https://login.microsoftonline.com/${cfg.tenantId}`,
-      redirectUri: `${location.origin}/auth-callback`
-    },
-    cache: { cacheLocation: "sessionStorage" }
-  });
+  let cfg;
+  let msalApp;
 
   // Pagination state
-  let pageStack = [null]; // stack of continuation tokens; index 0 = first page (no token)
+  let pageStack = [null];
   let currentPageIdx = 0;
+
+  function showLoginError(msg) {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("login-error").textContent = msg;
+    document.getElementById("login-error").style.display = "block";
+  }
 
   async function init() {
     try {
+      if (!window.MONOBOARD_CONFIG) throw new Error("config.js failed to load");
+      cfg = window.MONOBOARD_CONFIG;
+
+      if (typeof msal === "undefined") throw new Error("MSAL script failed to load");
+
+      msalApp = new msal.PublicClientApplication({
+        auth: {
+          clientId: cfg.clientId,
+          authority: `https://login.microsoftonline.com/${cfg.tenantId}`,
+          redirectUri: `${location.origin}/auth-callback`
+        },
+        cache: { cacheLocation: "sessionStorage" }
+      });
+
       await msalApp.initialize();
       const resp = await msalApp.handleRedirectPromise();
       const account = resp?.account ?? msalApp.getAllAccounts()[0] ?? null;
@@ -303,21 +315,19 @@
         document.getElementById("login-screen").style.display = "flex";
       }
     } catch (err) {
-      document.getElementById("login-screen").style.display = "flex";
-      document.getElementById("login-error").textContent = "Auth init error: " + err.message;
-      document.getElementById("login-error").style.display = "block";
+      showLoginError("Init error: " + err.message);
     }
   }
 
   async function login() {
     document.getElementById("login-error").style.display = "none";
     try {
+      if (!msalApp) throw new Error("Auth not initialized — check browser console for details");
       await msalApp.loginRedirect({
         scopes: [`api://${cfg.clientId}/runs.read`]
       });
     } catch (err) {
-      document.getElementById("login-error").textContent = "Login error: " + err.message;
-      document.getElementById("login-error").style.display = "block";
+      showLoginError("Login error: " + err.message);
     }
   }
 
