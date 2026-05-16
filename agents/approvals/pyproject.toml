@@ -1,0 +1,30 @@
+[project]
+name = "approvals"
+version = "0.1.0"
+description = "Monoboard escalation approval runtime — Function App with Durable orchestration, Storage Queue + Bot API."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "azure-functions>=1.21.0,<2",
+    "azure-functions-durable>=1.2.10,<2",
+    "azure-storage-queue>=12.10",
+    "azure-storage-blob>=12.20",
+    "azure-data-tables>=12.5",
+    "azure-keyvault-secrets>=4.8",
+    "azure-appconfiguration>=1.6",
+    "azure-identity>=1.17",
+    "PyJWT[crypto]>=2.9",
+    "httpx>=0.27",
+    "pydantic>=2.8",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"

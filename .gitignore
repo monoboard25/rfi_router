@@ -25,3 +25,6 @@ local.settings.json
 
 # uv
 .uv
+
+# macOS
+.DS_Store
